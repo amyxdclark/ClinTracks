@@ -1,241 +1,274 @@
-# ClinTrack
+# 🏥 ClinTrack — Clinical Requirements Tracker
 
-A Progressive Web App (PWA) for tracking EMS and Nursing clinical requirements, shift hours, skills, and scheduling.
+A **Progressive Web App (PWA)** for EMS and Nursing students to track clinical requirements, shift hours, skills, and scheduling — all without storing any Protected Health Information.
 
-![Onboarding](https://github.com/user-attachments/assets/a9583807-d7f8-4d2a-ae52-02e870a09584)
-![Dashboard](https://github.com/user-attachments/assets/ffc43f0a-033e-452a-bacc-416e70619e2e)
+---
 
-## Features
+## ✨ Features
 
-### 🎓 Role-Based Interface
-- **Student**: Track requirements, log shift hours, view progress
-- **Preceptor**: Review and approve student submissions
-- **Coordinator**: Manage site capacity and student placements
-- **Admin**: Full system access and oversight
+| | Feature | Description |
+|---|---|---|
+| 🎓 | **Role-Based Interface** | Five distinct roles with tailored views and permissions |
+| 📋 | **Requirements Tracking** | Log skills, hours, documents, and evaluations against program templates |
+| ⏰ | **Shift Hours Management** | Record shifts with auto-calculated hours and approval workflow |
+| 📅 | **Site Scheduling** | View clinical-site capacity and manage student placements |
+| ✅ | **Approval Workflow** | Submit → Review → Approve/Reject pipeline for all entries |
+| 🔒 | **Privacy First** | Mandatory "No PHI" checkbox; zero patient data stored |
+| 💾 | **Import / Export** | JSON backup with full-replace or smart-merge import modes |
+| 📱 | **PWA & Offline** | Installable on any device; works without an internet connection |
+| 🎨 | **Modern UI** | Gradient design, mobile bottom nav, desktop sidebar, onboarding flow |
 
-![Profile Switcher](https://github.com/user-attachments/assets/44ed84cb-5363-46c7-be4b-d9fdbf1e2431)
+---
 
-### 📋 Clinical Requirements Tracking
-- Add and manage clinical skill completions
-- Submit for preceptor review
-- Track approval status
-- Built-in PHI protection reminders
+## 🛠 Technology Stack
 
-![Requirements](https://github.com/user-attachments/assets/6bd1a6c5-b5bd-4edf-8a50-a02a7ba5b002)
+| Layer | Technology |
+|---|---|
+| Build Tool | [Vite 7](https://vitejs.dev/) |
+| UI Framework | [React 19](https://react.dev/) + TypeScript 5 |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com/) |
+| Routing | [React Router 7](https://reactrouter.com/) (HashRouter) |
+| PWA | [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) with Workbox |
+| State | React Context API + browser `localStorage` |
+| Icons | [Lucide React](https://lucide.dev/) |
 
-### ⏰ Shift Hours Management
-- Log clinical shift hours with date/time
-- Calculate total hours automatically
-- Submit for approval workflow
-- Track approved vs pending hours
+---
 
-### 📅 Site Capacity Scheduling
-- View clinical site availability
-- Monitor student capacity limits
-- Color-coded capacity indicators
-- Coordinator-managed placements
-
-![Scheduling](https://github.com/user-attachments/assets/e0ef7e1f-6f4e-4e26-8a8a-0949d4f88ebc)
-
-### 🔒 Privacy First
-- **NO PHI** checkbox required for all entries
-- Prominent warnings throughout the app
-- Privacy reminders on every page
-- Local-only data storage
-
-### 💾 Data Management
-- All data stored in browser localStorage
-- Import/Export backup functionality
-- No external servers or cloud storage
-- Complete data portability
-
-### 📱 Progressive Web App
-- Mobile-first responsive design
-- Works offline
-- Installable on mobile devices
-- Fast and lightweight
-
-### 🎨 Modern UI
-- Colorful, gradient-based design
-- Intuitive navigation
-- Mobile bottom navigation
-- Desktop sidebar navigation
-- Onboarding flow for new users
-
-## Technology Stack
-
-- **Frontend Framework**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Routing**: React Router (HashRouter for GitHub Pages)
-- **PWA**: vite-plugin-pwa with Workbox
-- **State Management**: React Context API
-- **Storage**: Browser localStorage
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
-- npm or yarn
+
+- **Node.js 18+**
+- **npm**
 
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/amyxdclark/ClinTracks.git
 cd ClinTracks
-
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
 ```
 
 ### Development
-The app runs at `http://localhost:5173/clintrack/` in development mode with hot module replacement.
 
-### Building
 ```bash
-npm run build
+npm run dev
 ```
-Outputs to `dist/` directory, ready for deployment.
 
-## Deployment
+Opens at **<http://localhost:5173/clintrack/>** with hot-module replacement.
 
-### GitHub Pages
-The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically deploys to GitHub Pages on push to the main branch.
+### Production Build
 
-**Setup Steps:**
-1. Go to repository Settings → Pages
-2. Set Source to "GitHub Actions"
-3. Push to main branch to trigger deployment
-4. Access at `https://[username].github.io/clintrack/`
-
-### Manual Deployment
 ```bash
-npm run build
-# Upload contents of dist/ to your web server
+npm run build      # TypeScript check + Vite build → dist/
+npm run preview    # Serve the production build locally
 ```
-
-## Usage
-
-### First Time Setup
-1. On first launch, complete the onboarding tutorial
-2. Switch between roles using the profile button (top right)
-3. Explore different user perspectives
-
-### As a Student
-1. Add clinical requirements from the Requirements page
-2. Log shift hours from the Shift Hours page
-3. Submit items for preceptor approval
-4. Track your progress on the Dashboard
-
-### As a Preceptor
-1. Review pending requirements and shift hours
-2. Approve or reject submissions
-3. Provide feedback to students
-
-### As a Coordinator/Admin
-1. Monitor site capacity on Scheduling page
-2. Oversee all student progress
-3. Manage clinical placements
-
-### Data Backup
-1. Go to Settings page
-2. Click "Export Backup" to download JSON file
-3. Use "Import Backup" to restore from file
-4. **Recommended**: Export regularly as backup
-
-## Project Structure
-
-```
-ClinTracks/
-├── public/              # Static assets
-├── src/
-│   ├── components/      # React components
-│   │   ├── Layout.tsx
-│   │   ├── Navbar.tsx
-│   │   └── ProfileSwitcher.tsx
-│   ├── pages/          # Page components
-│   │   ├── Dashboard.tsx
-│   │   ├── Requirements.tsx
-│   │   ├── ShiftHours.tsx
-│   │   ├── Skills.tsx
-│   │   ├── Scheduling.tsx
-│   │   ├── Settings.tsx
-│   │   ├── Onboarding.tsx
-│   │   └── Help.tsx
-│   ├── AppContext.tsx  # Global state management
-│   ├── storage.ts      # localStorage utilities
-│   ├── types.ts        # TypeScript type definitions
-│   ├── App.tsx         # Main app component
-│   ├── main.tsx        # Entry point
-│   └── index.css       # Global styles
-├── .github/
-│   └── workflows/
-│       └── deploy.yml  # GitHub Pages deployment
-├── index.html
-├── vite.config.ts      # Vite configuration
-├── tailwind.config.js  # Tailwind CSS configuration
-└── package.json
-```
-
-## Key Features Explained
-
-### LocalStorage Data Structure
-All app data is stored as a single JSON object in localStorage:
-```typescript
-{
-  version: "1.0.0",
-  currentUserId: "1",
-  users: [...],
-  skills: [...],
-  requirements: [...],
-  shiftHours: [...],
-  sites: [...],
-  hasSeenOnboarding: false
-}
-```
-
-### Simulated Roles
-The app simulates a multi-user system with role-based views:
-- Profile switcher allows instant role changes
-- Each role sees appropriate data and actions
-- Submit/approve workflows demonstrate clinical documentation process
-
-### PHI Protection
-Multiple safeguards ensure privacy compliance:
-- Mandatory "NO PHI" checkbox on all data entry forms
-- Warning banners on every data entry page
-- Reminder on dashboard
-- Placeholder text emphasizes generic descriptions
-
-## Browser Compatibility
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers with PWA support
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Support
-
-For issues or questions, please open an issue on GitHub.
 
 ---
 
-**⚠️ Important Privacy Notice**: This application is designed for educational and clinical tracking purposes. Never include Protected Health Information (PHI) such as patient names, medical record numbers, or other identifiable information.
+## 🌐 Deployment to GitHub Pages
+
+The repository ships with a GitHub Actions workflow at `.github/workflows/deploy.yml` that deploys automatically on every push to `main`.
+
+### Setup Steps
+
+1. Go to **Settings → Pages** in your repository.
+2. Set **Source** to **GitHub Actions**.
+3. Push to the `main` branch — the workflow builds and deploys automatically.
+4. Access the live app at `https://[username].github.io/clintrack/`.
+
+### Troubleshooting
+
+- The app uses **HashRouter** (`/#/path`) so that all routes resolve correctly on GitHub Pages — no custom `404.html` needed.
+- If the page appears blank after deploy, clear the browser cache or hard-refresh.
+
+---
+
+## 💾 How Import / Export Works
+
+All application state lives in `localStorage` as a single JSON object. The Settings page provides two data-management operations:
+
+### Export
+
+- Downloads the entire `AppState` as a timestamped JSON file (e.g. `clintrack-backup-2025-01-15.json`).
+
+### Import
+
+Two modes are available when importing a backup file:
+
+| Mode | Behavior |
+|---|---|
+| **Replace All** | Overwrites the current state entirely with the imported file. |
+| **Merge** | Combines data by `id` — existing records are updated, new records are added, and nothing is deleted. |
+
+- The file is **validated** before import (`version` and `profiles` fields must be present).
+- **Recommendation:** Export a backup at least once a week to guard against accidental data loss.
+
+---
+
+## 🔒 Privacy Rules — No PHI
+
+> **⚠️ Never include Protected Health Information (PHI) in this application.**
+
+### Requirements
+
+- Every shift log and skill log has a mandatory **"No PHI"** checkbox that must be checked before saving.
+- Warning banners appear on every data-entry page.
+
+### What NOT to Include
+
+- Patient names, initials, or nicknames
+- Medical record numbers (MRN)
+- Dates of birth or Social Security numbers
+- Specific diagnoses tied to identifiable patients
+- Photographs or any media containing patient information
+
+### What to Use Instead
+
+- Generic descriptions: *"adult male, chest pain"*
+- Age ranges: *"40–50 y/o"*
+- Skill-focused notes: *"successful IV start, 20g, AC"*
+
+---
+
+## 👥 User Roles
+
+ClinTrack ships with five built-in roles. Switch between them instantly via the profile switcher.
+
+| Role | Capabilities |
+|---|---|
+| **Student** | Log shifts & skills, track requirement progress, submit entries for review |
+| **Preceptor** | Review and approve/reject student submissions |
+| **Instructor** | Same as Preceptor — review and approve/reject student submissions |
+| **Coordinator** | Manage schedules, monitor site capacity, approve scheduling requests |
+| **Program Admin** | Full system access — manage programs, cohorts, sites, and requirement templates |
+
+---
+
+## ✅ Approval Workflow
+
+```
+Student creates entry ──► Draft / Pending
+        │
+Student submits      ──► Submitted
+        │
+Reviewer decides     ──► Approved  ✓  (counts toward requirements)
+                     ──► Rejected  ✗  (student may revise & resubmit)
+```
+
+Only **approved** items count toward a student's requirement totals.
+
+---
+
+## 📁 Project Structure
+
+```
+ClinTracks/
+├── public/                  # Static assets & PWA icons
+├── src/
+│   ├── components/          # Shared UI components
+│   │   ├── Layout.tsx       #   App shell with nav
+│   │   ├── Navbar.tsx       #   Responsive navigation
+│   │   └── ProfileSwitcher.tsx  # Role-switching dropdown
+│   ├── pages/               # Route-level page components
+│   │   ├── AdminSetup.tsx   #   Program Admin configuration
+│   │   ├── Approvals.tsx    #   Review queue
+│   │   ├── Dashboard.tsx    #   Overview & progress
+│   │   ├── Help.tsx         #   In-app help
+│   │   ├── Onboarding.tsx   #   First-run tutorial
+│   │   ├── Requirements.tsx #   Requirement tracking
+│   │   ├── Scheduling.tsx   #   Site capacity calendar
+│   │   ├── Settings.tsx     #   Import/export & reset
+│   │   ├── ShiftHours.tsx   #   Shift logging
+│   │   └── Skills.tsx       #   Skill logging
+│   ├── AppContext.tsx        # React Context global state
+│   ├── storage.ts           # localStorage read/write/merge utilities
+│   ├── types.ts             # TypeScript interfaces & defaults
+│   ├── App.tsx              # Root component & router
+│   ├── main.tsx             # Entry point
+│   └── index.css            # Global styles (Tailwind directives)
+├── .github/
+│   └── workflows/
+│       └── deploy.yml       # GitHub Pages CI/CD
+├── index.html               # HTML entry
+├── vite.config.ts           # Vite config (base path, PWA plugin)
+├── tailwind.config.js       # Tailwind CSS config
+├── postcss.config.js        # PostCSS config
+├── tsconfig.json            # TypeScript project references
+├── tsconfig.app.json        # App-level TS config
+├── tsconfig.node.json       # Node/tooling TS config
+├── eslint.config.js         # ESLint flat config
+└── package.json
+```
+
+---
+
+## 🗃 Data Model
+
+All state is persisted as a single `AppState` object in `localStorage`:
+
+```typescript
+interface AppState {
+  version: number;
+  lastSavedAt: string;
+  profiles: UserProfile[];       // Users & roles
+  activeProfileId: string;
+  programs: Program[];           // EMS, Nursing, etc.
+  cohorts: Cohort[];             // Semester groupings
+  sites: Site[];                 // Clinical locations
+  capacities: SiteCapacity[];    // Per-date seat counts
+  requirementTemplates: RequirementTemplate[];  // What students must complete
+  studentProgress: StudentRequirementProgress[];
+  shiftLogs: ShiftLog[];         // Shift hour entries
+  skillLogs: SkillLog[];         // Skill completion entries
+  approvals: Approval[];         // Review decisions
+  scheduleRequests: ScheduleRequest[];
+  audit: AuditEvent[];           // Change history
+  hasSeenOnboarding: boolean;
+}
+```
+
+Each array is keyed by `id`, which enables the **merge** import strategy.
+
+---
+
+## 📲 PWA — Install on Your Device
+
+ClinTrack is a Progressive Web App and can be installed for a native-like experience.
+
+### iOS (Safari)
+
+1. Open the app URL in **Safari**.
+2. Tap the **Share** button (square with arrow).
+3. Select **Add to Home Screen**.
+
+### Android (Chrome)
+
+1. Open the app URL in **Chrome**.
+2. Tap the **⋮** menu.
+3. Select **Install app** (or **Add to Home Screen**).
+
+### Desktop (Chrome / Edge)
+
+1. Look for the **install** icon in the address bar.
+2. Click **Install**.
+
+Once installed the app launches in its own window and works fully offline.
+
+---
+
+## 🌍 Browser Compatibility
+
+| Browser | Minimum Version |
+|---|---|
+| Chrome / Edge | 90+ |
+| Firefox | 88+ |
+| Safari | 14+ |
+| Mobile Safari (iOS) | 14+ |
+| Chrome for Android | 90+ |
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](https://opensource.org/licenses/MIT).
