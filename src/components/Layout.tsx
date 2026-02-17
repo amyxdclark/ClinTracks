@@ -10,8 +10,9 @@ const Layout = () => {
   const location = useLocation();
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
 
+  const currentProfile = state.profiles.find(p => p.id === state.activeProfileId);
+
   useEffect(() => {
-    // Show onboarding if not seen
     if (!state.hasSeenOnboarding && location.pathname !== '/onboarding') {
       navigate('/onboarding');
     }
@@ -19,13 +20,16 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <Navbar onProfileClick={() => setShowProfileSwitcher(true)} />
-      
+      <Navbar
+        onProfileClick={() => setShowProfileSwitcher(true)}
+        currentProfile={currentProfile}
+      />
+
       {showProfileSwitcher && (
         <ProfileSwitcher onClose={() => setShowProfileSwitcher(false)} />
       )}
-      
-      <main className="container mx-auto px-4 py-6 pb-20 md:pb-6">
+
+      <main className="md:ml-64 container mx-auto px-4 py-6 pb-20 md:pb-6">
         <Outlet />
       </main>
     </div>

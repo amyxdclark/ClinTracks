@@ -1,41 +1,35 @@
 import { useApp } from '../AppContext';
 import type { UserProfile, Role } from '../types';
+import {
+  GraduationCap,
+  Stethoscope,
+  BookOpen,
+  BarChart,
+  Shield,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface ProfileSwitcherProps {
   onClose: () => void;
 }
 
+const roleConfig: Record<Role, { color: string; Icon: LucideIcon }> = {
+  Student: { color: 'bg-blue-100 text-blue-800 border-blue-300', Icon: GraduationCap },
+  Preceptor: { color: 'bg-green-100 text-green-800 border-green-300', Icon: Stethoscope },
+  Instructor: { color: 'bg-teal-100 text-teal-800 border-teal-300', Icon: BookOpen },
+  Coordinator: { color: 'bg-purple-100 text-purple-800 border-purple-300', Icon: BarChart },
+  ProgramAdmin: { color: 'bg-red-100 text-red-800 border-red-300', Icon: Shield },
+};
+
 const ProfileSwitcher = ({ onClose }: ProfileSwitcherProps) => {
   const { state, updateState } = useApp();
-  
+
   const switchProfile = (userId: string) => {
     updateState(prev => ({
       ...prev,
       activeProfileId: userId,
     }));
     onClose();
-  };
-
-  const getRoleColor = (role: Role) => {
-    const colors: Record<Role, string> = {
-      Student: 'bg-blue-100 text-blue-800 border-blue-300',
-      Preceptor: 'bg-green-100 text-green-800 border-green-300',
-      Instructor: 'bg-teal-100 text-teal-800 border-teal-300',
-      Coordinator: 'bg-purple-100 text-purple-800 border-purple-300',
-      ProgramAdmin: 'bg-red-100 text-red-800 border-red-300',
-    };
-    return colors[role];
-  };
-
-  const getRoleIcon = (role: Role) => {
-    const icons: Record<Role, string> = {
-      Student: '🎓',
-      Preceptor: '👨‍⚕️',
-      Instructor: '📚',
-      Coordinator: '📊',
-      ProgramAdmin: '⚙️',
-    };
-    return icons[role];
   };
 
   return (
@@ -47,37 +41,41 @@ const ProfileSwitcher = ({ onClose }: ProfileSwitcherProps) => {
             Select a role to simulate different user experiences
           </p>
         </div>
-        
+
         <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
-          {state.profiles.map((user: UserProfile) => (
-            <button
-              key={user.id}
-              onClick={() => switchProfile(user.id)}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                user.id === state.activeProfileId
-                  ? 'border-primary-500 bg-primary-50 shadow-md'
-                  : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-3xl">{getRoleIcon(user.role)}</span>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-900">{user.name}</div>
-                  <div className="text-sm text-gray-600">{user.email}</div>
+          {state.profiles.map((user: UserProfile) => {
+            const { color, Icon } = roleConfig[user.role];
+            const active = user.id === state.activeProfileId;
+            return (
+              <button
+                key={user.id}
+                onClick={() => switchProfile(user.id)}
+                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                  active
+                    ? 'border-primary-500 bg-primary-50 shadow-md'
+                    : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <Icon size={28} className={color.split(' ')[1]} />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">{user.name}</div>
+                    <div className="text-sm text-gray-600">{user.email}</div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${color}`}>
+                    {user.role}
+                  </span>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getRoleColor(user.role)}`}>
-                  {user.role}
-                </span>
-              </div>
-              {user.id === state.activeProfileId && (
-                <div className="mt-2 text-xs text-primary-600 font-medium">
-                  ✓ Currently Active
-                </div>
-              )}
-            </button>
-          ))}
+                {active && (
+                  <div className="mt-2 text-xs text-primary-600 font-medium">
+                    ✓ Currently Active
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
-        
+
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
           <button
             onClick={onClose}
