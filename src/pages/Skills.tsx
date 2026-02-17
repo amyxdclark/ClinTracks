@@ -11,19 +11,21 @@ const Skills = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {state.skills.map(skill => (
-          <div key={skill.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+        {state.requirementTemplates.map(template => (
+          <div key={template.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-start justify-between mb-3">
-              <h3 className="text-lg font-bold text-gray-900">{skill.name}</h3>
+              <h3 className="text-lg font-bold text-gray-900">{template.name}</h3>
               <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                skill.category === 'Basic' ? 'bg-green-100 text-green-800' :
-                skill.category === 'Skills' ? 'bg-blue-100 text-blue-800' :
+                template.category === 'Hours' ? 'bg-green-100 text-green-800' :
+                template.category === 'Skills' ? 'bg-blue-100 text-blue-800' :
+                template.category === 'Documents' ? 'bg-orange-100 text-orange-800' :
                 'bg-purple-100 text-purple-800'
               }`}>
-                {skill.category}
+                {template.category}
               </span>
             </div>
-            <p className="text-sm text-gray-600">{skill.description}</p>
+            <p className="text-sm text-gray-600">{template.description}</p>
+            <p className="text-sm text-gray-500 mt-2">Target: {template.targetCount} {template.unit}</p>
           </div>
         ))}
       </div>

@@ -9,7 +9,7 @@ const Navbar = ({ onProfileClick }: NavbarProps) => {
   const location = useLocation();
   const { state } = useApp();
   
-  const currentUser = state.users.find(u => u.id === state.currentUserId);
+  const currentUser = state.profiles.find(u => u.id === state.activeProfileId);
   
   const navItems = [
     { path: '/dashboard', label: '🏠', tooltip: 'Dashboard' },

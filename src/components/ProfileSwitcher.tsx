@@ -1,5 +1,5 @@
 import { useApp } from '../AppContext';
-import type { User, Role } from '../types';
+import type { UserProfile, Role } from '../types';
 
 interface ProfileSwitcherProps {
   onClose: () => void;
@@ -11,27 +11,29 @@ const ProfileSwitcher = ({ onClose }: ProfileSwitcherProps) => {
   const switchProfile = (userId: string) => {
     updateState(prev => ({
       ...prev,
-      currentUserId: userId,
+      activeProfileId: userId,
     }));
     onClose();
   };
 
   const getRoleColor = (role: Role) => {
-    const colors = {
+    const colors: Record<Role, string> = {
       Student: 'bg-blue-100 text-blue-800 border-blue-300',
       Preceptor: 'bg-green-100 text-green-800 border-green-300',
+      Instructor: 'bg-teal-100 text-teal-800 border-teal-300',
       Coordinator: 'bg-purple-100 text-purple-800 border-purple-300',
-      Admin: 'bg-red-100 text-red-800 border-red-300',
+      ProgramAdmin: 'bg-red-100 text-red-800 border-red-300',
     };
     return colors[role];
   };
 
   const getRoleIcon = (role: Role) => {
-    const icons = {
+    const icons: Record<Role, string> = {
       Student: '🎓',
       Preceptor: '👨‍⚕️',
+      Instructor: '📚',
       Coordinator: '📊',
-      Admin: '⚙️',
+      ProgramAdmin: '⚙️',
     };
     return icons[role];
   };
@@ -47,12 +49,12 @@ const ProfileSwitcher = ({ onClose }: ProfileSwitcherProps) => {
         </div>
         
         <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
-          {state.users.map((user: User) => (
+          {state.profiles.map((user: UserProfile) => (
             <button
               key={user.id}
               onClick={() => switchProfile(user.id)}
               className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                user.id === state.currentUserId
+                user.id === state.activeProfileId
                   ? 'border-primary-500 bg-primary-50 shadow-md'
                   : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
               }`}
@@ -67,7 +69,7 @@ const ProfileSwitcher = ({ onClose }: ProfileSwitcherProps) => {
                   {user.role}
                 </span>
               </div>
-              {user.id === state.currentUserId && (
+              {user.id === state.activeProfileId && (
                 <div className="mt-2 text-xs text-primary-600 font-medium">
                   ✓ Currently Active
                 </div>

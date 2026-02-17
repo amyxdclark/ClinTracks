@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../AppContext';
-import type { ShiftHours } from '../types';
+import type { ShiftLog } from '../types';
 
 const ShiftHoursPage = () => {
   const { state, updateState } = useApp();
@@ -13,15 +13,15 @@ const ShiftHoursPage = () => {
   const [notes, setNotes] = useState('');
   const [noPHI, setNoPHI] = useState(false);
 
-  const currentUser = state.users.find(u => u.id === state.currentUserId);
+  const currentUser = state.profiles.find(u => u.id === state.activeProfileId);
   const isStudent = currentUser?.role === 'Student';
   const isPreceptor = currentUser?.role === 'Preceptor';
 
   const userShifts = isStudent
-    ? state.shiftHours.filter(s => s.studentId === state.currentUserId)
-    : state.shiftHours.filter(s => s.preceptorId === state.currentUserId);
+    ? state.shiftLogs.filter(s => s.studentId === state.activeProfileId)
+    : state.shiftLogs.filter(s => s.preceptorId === state.activeProfileId);
 
-  const preceptors = state.users.filter(u => u.role === 'Preceptor');
+  const preceptors = state.profiles.filter(u => u.role === 'Preceptor');
 
   const calculateHours = (start: string, end: string): number => {
     if (!start || !end) return 0;
@@ -37,29 +37,34 @@ const ShiftHoursPage = () => {
       return;
     }
 
-    const hours = calculateHours(startTime, endTime);
-    if (hours <= 0) {
+    const computedHours = calculateHours(startTime, endTime);
+    if (computedHours <= 0) {
       alert('End time must be after start time');
       return;
     }
 
-    const newShift: ShiftHours = {
+    const now = new Date().toISOString();
+
+    const newShift: ShiftLog = {
       id: Date.now().toString(),
-      studentId: state.currentUserId,
+      studentId: state.activeProfileId,
       date,
       startTime,
       endTime,
-      hours,
+      breakMinutes: 0,
+      computedHours,
       siteId,
       preceptorId: preceptorId || undefined,
       status: 'pending',
       notes,
       noPHI: true,
+      createdAt: now,
+      updatedAt: now,
     };
 
     updateState(prev => ({
       ...prev,
-      shiftHours: [...prev.shiftHours, newShift],
+      shiftLogs: [...prev.shiftLogs, newShift],
     }));
 
     setShowAddModal(false);
@@ -79,8 +84,8 @@ const ShiftHoursPage = () => {
   const handleSubmit = (id: string) => {
     updateState(prev => ({
       ...prev,
-      shiftHours: prev.shiftHours.map(s =>
-        s.id === id ? { ...s, status: 'submitted' as const } : s
+      shiftLogs: prev.shiftLogs.map(s =>
+        s.id === id ? { ...s, status: 'submitted' as const, updatedAt: new Date().toISOString() } : s
       ),
     }));
   };
@@ -88,8 +93,8 @@ const ShiftHoursPage = () => {
   const handleApprove = (id: string) => {
     updateState(prev => ({
       ...prev,
-      shiftHours: prev.shiftHours.map(s =>
-        s.id === id ? { ...s, status: 'approved' as const } : s
+      shiftLogs: prev.shiftLogs.map(s =>
+        s.id === id ? { ...s, status: 'approved' as const, updatedAt: new Date().toISOString() } : s
       ),
     }));
   };
@@ -97,16 +102,16 @@ const ShiftHoursPage = () => {
   const handleReject = (id: string) => {
     updateState(prev => ({
       ...prev,
-      shiftHours: prev.shiftHours.map(s =>
-        s.id === id ? { ...s, status: 'rejected' as const } : s
+      shiftLogs: prev.shiftLogs.map(s =>
+        s.id === id ? { ...s, status: 'rejected' as const, updatedAt: new Date().toISOString() } : s
       ),
     }));
   };
 
-  const totalHours = userShifts.reduce((sum, shift) => sum + shift.hours, 0);
+  const totalHours = userShifts.reduce((sum, shift) => sum + shift.computedHours, 0);
   const approvedHours = userShifts
     .filter(s => s.status === 'approved')
-    .reduce((sum, shift) => sum + shift.hours, 0);
+    .reduce((sum, shift) => sum + shift.computedHours, 0);
 
   return (
     <div className="max-w-6xl mx-auto md:ml-64">
@@ -176,8 +181,8 @@ const ShiftHoursPage = () => {
         ) : (
           userShifts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(shift => {
             const site = state.sites.find(s => s.id === shift.siteId);
-            const student = state.users.find(u => u.id === shift.studentId);
-            const preceptor = shift.preceptorId ? state.users.find(u => u.id === shift.preceptorId) : null;
+            const student = state.profiles.find(u => u.id === shift.studentId);
+            const preceptor = shift.preceptorId ? state.profiles.find(u => u.id === shift.preceptorId) : null;
 
             return (
               <div key={shift.id} className="bg-white rounded-xl shadow-lg p-6">
@@ -190,7 +195,7 @@ const ShiftHoursPage = () => {
                     <p className="text-gray-600">
                       📅 {new Date(shift.date).toLocaleDateString()} • 
                       {' '}⏰ {shift.startTime} - {shift.endTime} • 
-                      {' '}⌛ {shift.hours.toFixed(1)} hours
+                      {' '}⌛ {shift.computedHours.toFixed(1)} hours
                     </p>
                     {preceptor && (
                       <p className="text-sm text-gray-600 mt-1">Preceptor: {preceptor.name}</p>

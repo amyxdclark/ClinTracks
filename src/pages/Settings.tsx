@@ -99,24 +99,24 @@ const Settings = () => {
               <span className="font-medium">{state.version}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-600">Total Requirements</span>
-              <span className="font-medium">{state.requirements.length}</span>
+              <span className="text-gray-600">Total Requirement Templates</span>
+              <span className="font-medium">{state.requirementTemplates.length}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-600">Total Shift Hours</span>
-              <span className="font-medium">{state.shiftHours.length}</span>
+              <span className="text-gray-600">Total Shift Logs</span>
+              <span className="font-medium">{state.shiftLogs.length}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-600">Users</span>
-              <span className="font-medium">{state.users.length}</span>
+              <span className="text-gray-600">Profiles</span>
+              <span className="font-medium">{state.profiles.length}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
               <span className="text-gray-600">Clinical Sites</span>
               <span className="font-medium">{state.sites.length}</span>
             </div>
             <div className="flex justify-between py-2">
-              <span className="text-gray-600">Skills in Catalog</span>
-              <span className="font-medium">{state.skills.length}</span>
+              <span className="text-gray-600">Skill Logs</span>
+              <span className="font-medium">{state.skillLogs.length}</span>
             </div>
           </div>
         </div>

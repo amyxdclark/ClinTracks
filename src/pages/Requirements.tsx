@@ -1,48 +1,55 @@
 import { useState } from 'react';
 import { useApp } from '../AppContext';
-import type { ClinicalRequirement } from '../types';
+import type { SkillLog } from '../types';
 
 const Requirements = () => {
   const { state, updateState } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedSkillId, setSelectedSkillId] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [notes, setNotes] = useState('');
   const [noPHI, setNoPHI] = useState(false);
   const [selectedPreceptor, setSelectedPreceptor] = useState('');
 
-  const currentUser = state.users.find(u => u.id === state.currentUserId);
+  const currentUser = state.profiles.find(u => u.id === state.activeProfileId);
   const isStudent = currentUser?.role === 'Student';
   const isPreceptor = currentUser?.role === 'Preceptor';
 
-  const userRequirements = isStudent
-    ? state.requirements.filter(r => r.studentId === state.currentUserId)
-    : state.requirements.filter(r => r.preceptorId === state.currentUserId);
+  const userSkillLogs = isStudent
+    ? state.skillLogs.filter(r => r.studentId === state.activeProfileId)
+    : state.skillLogs.filter(r => r.status === 'submitted');
 
-  const preceptors = state.users.filter(u => u.role === 'Preceptor');
+  const preceptors = state.profiles.filter(u => u.role === 'Preceptor');
 
   const handleAddRequirement = () => {
-    if (!selectedSkillId || !noPHI) {
+    if (!selectedTemplateId || !noPHI) {
       alert('Please select a skill and confirm NO PHI is included');
       return;
     }
 
-    const newRequirement: ClinicalRequirement = {
+    const template = state.requirementTemplates.find(t => t.id === selectedTemplateId);
+    const now = new Date().toISOString();
+
+    const newSkillLog: SkillLog = {
       id: Date.now().toString(),
-      studentId: state.currentUserId,
-      skillId: selectedSkillId,
-      status: 'pending',
+      studentId: state.activeProfileId,
+      skillName: template?.name ?? '',
+      skillType: template?.category ?? '',
+      outcome: 'success',
+      mode: 'independent',
       notes,
       noPHI: true,
-      preceptorId: selectedPreceptor || undefined,
+      status: 'pending',
+      createdAt: now,
+      updatedAt: now,
     };
 
     updateState(prev => ({
       ...prev,
-      requirements: [...prev.requirements, newRequirement],
+      skillLogs: [...prev.skillLogs, newSkillLog],
     }));
 
     setShowAddModal(false);
-    setSelectedSkillId('');
+    setSelectedTemplateId('');
     setNotes('');
     setNoPHI(false);
     setSelectedPreceptor('');
@@ -51,8 +58,8 @@ const Requirements = () => {
   const handleSubmit = (id: string) => {
     updateState(prev => ({
       ...prev,
-      requirements: prev.requirements.map(r =>
-        r.id === id ? { ...r, status: 'submitted' as const, submittedDate: new Date().toISOString() } : r
+      skillLogs: prev.skillLogs.map(r =>
+        r.id === id ? { ...r, status: 'submitted' as const, updatedAt: new Date().toISOString() } : r
       ),
     }));
   };
@@ -60,8 +67,8 @@ const Requirements = () => {
   const handleApprove = (id: string) => {
     updateState(prev => ({
       ...prev,
-      requirements: prev.requirements.map(r =>
-        r.id === id ? { ...r, status: 'approved' as const, approvedDate: new Date().toISOString() } : r
+      skillLogs: prev.skillLogs.map(r =>
+        r.id === id ? { ...r, status: 'approved' as const, updatedAt: new Date().toISOString() } : r
       ),
     }));
   };
@@ -69,8 +76,8 @@ const Requirements = () => {
   const handleReject = (id: string) => {
     updateState(prev => ({
       ...prev,
-      requirements: prev.requirements.map(r =>
-        r.id === id ? { ...r, status: 'rejected' as const } : r
+      skillLogs: prev.skillLogs.map(r =>
+        r.id === id ? { ...r, status: 'rejected' as const, updatedAt: new Date().toISOString() } : r
       ),
     }));
   };
@@ -110,7 +117,7 @@ const Requirements = () => {
 
       {/* Requirements List */}
       <div className="space-y-4">
-        {userRequirements.length === 0 ? (
+        {userSkillLogs.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <span className="text-6xl mb-4 block">📋</span>
             <p className="text-gray-500 mb-4">No requirements yet</p>
@@ -124,10 +131,8 @@ const Requirements = () => {
             )}
           </div>
         ) : (
-          userRequirements.map(req => {
-            const skill = state.skills.find(s => s.id === req.skillId);
-            const student = state.users.find(u => u.id === req.studentId);
-            const preceptor = req.preceptorId ? state.users.find(u => u.id === req.preceptorId) : null;
+          userSkillLogs.map(req => {
+            const student = state.profiles.find(u => u.id === req.studentId);
 
             return (
               <div key={req.id} className="bg-white rounded-xl shadow-lg p-6">
@@ -136,11 +141,8 @@ const Requirements = () => {
                     {!isStudent && (
                       <p className="text-sm text-gray-600 mb-1">Student: {student?.name}</p>
                     )}
-                    <h3 className="text-xl font-bold text-gray-900">{skill?.name}</h3>
-                    <p className="text-sm text-gray-600">{skill?.category} - {skill?.description}</p>
-                    {preceptor && (
-                      <p className="text-sm text-gray-600 mt-1">Preceptor: {preceptor.name}</p>
-                    )}
+                    <h3 className="text-xl font-bold text-gray-900">{req.skillName}</h3>
+                    <p className="text-sm text-gray-600">{req.skillType} — {req.outcome} ({req.mode})</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                     req.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -160,12 +162,7 @@ const Requirements = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    {req.submittedDate && (
-                      <span>📅 Submitted: {new Date(req.submittedDate).toLocaleDateString()}</span>
-                    )}
-                    {req.approvedDate && (
-                      <span>✅ Approved: {new Date(req.approvedDate).toLocaleDateString()}</span>
-                    )}
+                    <span>📅 Created: {new Date(req.createdAt).toLocaleDateString()}</span>
                     <span className="flex items-center">
                       {req.noPHI ? '✅' : '❌'} NO PHI Confirmed
                     </span>
@@ -218,14 +215,14 @@ const Requirements = () => {
                   Select Skill *
                 </label>
                 <select
-                  value={selectedSkillId}
-                  onChange={(e) => setSelectedSkillId(e.target.value)}
+                  value={selectedTemplateId}
+                  onChange={(e) => setSelectedTemplateId(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="">Choose a skill...</option>
-                  {state.skills.map(skill => (
-                    <option key={skill.id} value={skill.id}>
-                      {skill.name} ({skill.category})
+                  {state.requirementTemplates.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} ({t.category})
                     </option>
                   ))}
                 </select>
@@ -281,7 +278,7 @@ const Requirements = () => {
                 <button
                   onClick={() => {
                     setShowAddModal(false);
-                    setSelectedSkillId('');
+                    setSelectedTemplateId('');
                     setNotes('');
                     setNoPHI(false);
                     setSelectedPreceptor('');
@@ -292,7 +289,7 @@ const Requirements = () => {
                 </button>
                 <button
                   onClick={handleAddRequirement}
-                  disabled={!selectedSkillId || !noPHI}
+                  disabled={!selectedTemplateId || !noPHI}
                   className="flex-1 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
                 >
                   Add Requirement
