@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useApp } from '../AppContext';
 import type { Approval } from '../types';
 import { Inbox, Check, X, Clock, FileText, Activity, MessageSquare } from 'lucide-react';
@@ -25,7 +25,7 @@ const Approvals = () => {
     [state.skillLogs],
   );
 
-  const handleDecision = (
+  const handleDecision = useCallback((
     entityType: 'shift' | 'skill',
     entityId: string,
     decision: 'approved' | 'rejected',
@@ -76,7 +76,7 @@ const Approvals = () => {
       delete next[entityId];
       return next;
     });
-  };
+  }, [state.activeProfileId, comments, updateState, addAuditEvent]);
 
   if (!isReviewer) {
     return (

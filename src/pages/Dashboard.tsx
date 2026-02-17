@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Clock,
@@ -109,59 +108,43 @@ const Dashboard = () => {
   const isAdminOrCoordinator = role === 'Coordinator' || role === 'ProgramAdmin';
 
   // Student data
-  const programTemplates = useMemo(
-    () =>
-      isStudent && currentUser?.programId
-        ? state.requirementTemplates.filter((t) => t.programId === currentUser.programId)
-        : [],
-    [isStudent, currentUser?.programId, state.requirementTemplates],
-  );
+  const programTemplates = isStudent && currentUser?.programId
+    ? state.requirementTemplates.filter((t) => t.programId === currentUser.programId)
+    : [];
 
-  const studentShifts = useMemo(
-    () => state.shiftLogs.filter((s) => s.studentId === state.activeProfileId),
-    [state.shiftLogs, state.activeProfileId],
-  );
+  const studentShifts = state.shiftLogs.filter((s) => s.studentId === state.activeProfileId);
 
-  const studentSkills = useMemo(
-    () => state.skillLogs.filter((s) => s.studentId === state.activeProfileId),
-    [state.skillLogs, state.activeProfileId],
-  );
+  const studentSkills = state.skillLogs.filter((s) => s.studentId === state.activeProfileId);
 
   // Compute requirement progress from actual logs
-  const requirementProgress = useMemo(() => {
-    return programTemplates.map((template) => {
-      let current = 0;
-      if (template.category === 'Hours') {
-        if (template.unit === 'hours') {
-          current = studentShifts
-            .filter((s) => s.status === 'approved')
-            .reduce((sum, s) => sum + s.computedHours, 0);
-        } else {
-          current = studentShifts.filter((s) => s.status === 'approved').length;
-        }
-      } else if (template.category === 'Skills') {
-        current = studentSkills.filter((s) => s.status === 'approved').length;
+  const requirementProgress = programTemplates.map((template) => {
+    let current = 0;
+    if (template.category === 'Hours') {
+      if (template.unit === 'hours') {
+        current = studentShifts
+          .filter((s) => s.status === 'approved')
+          .reduce((sum, s) => sum + s.computedHours, 0);
       } else {
-        const prog = state.studentProgress.find(
-          (p) => p.studentId === state.activeProfileId && p.templateId === template.id,
-        );
-        current = prog?.currentCount ?? 0;
+        current = studentShifts.filter((s) => s.status === 'approved').length;
       }
-      return { template, current, target: template.targetCount };
-    });
-  }, [programTemplates, studentShifts, studentSkills, state.studentProgress, state.activeProfileId]);
+    } else if (template.category === 'Skills') {
+      current = studentSkills.filter((s) => s.status === 'approved').length;
+    } else {
+      const prog = state.studentProgress.find(
+        (p) => p.studentId === state.activeProfileId && p.templateId === template.id,
+      );
+      current = prog?.currentCount ?? 0;
+    }
+    return { template, current, target: template.targetCount };
+  });
 
-  const totalApprovedHours = useMemo(
-    () =>
-      studentShifts.filter((s) => s.status === 'approved').reduce((sum, s) => sum + s.computedHours, 0),
-    [studentShifts],
-  );
+  const totalApprovedHours = studentShifts.filter((s) => s.status === 'approved').reduce((sum, s) => sum + s.computedHours, 0);
   const completedCount = requirementProgress.filter((r) => r.current >= r.target).length;
   const studentPending = studentShifts.filter((s) => s.status === 'submitted').length +
     studentSkills.filter((s) => s.status === 'submitted').length;
 
   // Upcoming scheduled shifts for student
-  const upcomingSchedules = useMemo(() => {
+  const upcomingSchedules = (() => {
     const today = new Date().toISOString().split('T')[0];
     return state.scheduleRequests
       .filter(
@@ -172,28 +155,17 @@ const Dashboard = () => {
       )
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 5);
-  }, [state.scheduleRequests, state.activeProfileId]);
+  })();
 
   // Preceptor / Instructor data
-  const pendingShiftReviews = useMemo(
-    () =>
-      state.shiftLogs.filter(
-        (s) => s.status === 'submitted' && s.preceptorId === state.activeProfileId,
-      ),
-    [state.shiftLogs, state.activeProfileId],
+  const pendingShiftReviews = state.shiftLogs.filter(
+    (s) => s.status === 'submitted' && s.preceptorId === state.activeProfileId,
   );
-  const pendingSkillReviews = useMemo(
-    () => state.skillLogs.filter((s) => s.status === 'submitted'),
-    [state.skillLogs],
-  );
-  const recentSubmissions = useMemo(
-    () =>
-      [...state.shiftLogs, ...state.skillLogs]
-        .filter((s) => s.status === 'submitted')
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        .slice(0, 5),
-    [state.shiftLogs, state.skillLogs],
-  );
+  const pendingSkillReviews = state.skillLogs.filter((s) => s.status === 'submitted');
+  const recentSubmissions = [...state.shiftLogs, ...state.skillLogs]
+    .filter((s) => s.status === 'submitted')
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 5);
 
   // Admin / Coordinator data
   const totalStudents = state.profiles.filter((p) => p.role === 'Student').length;

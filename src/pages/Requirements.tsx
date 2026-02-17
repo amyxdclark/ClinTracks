@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useApp } from '../AppContext';
 import type { RequirementTemplate } from '../types';
 import { ClipboardCheck, BookOpen, FileText, Award, CheckCircle, AlertTriangle, Plus, Target } from 'lucide-react';
@@ -23,12 +23,12 @@ const Requirements = () => {
   const currentUser = state.profiles.find(u => u.id === state.activeProfileId);
   const isStudent = currentUser?.role === 'Student';
 
-  const templates = useMemo(() => {
+  const templates = (() => {
     if (isStudent && currentUser?.programId) {
       return state.requirementTemplates.filter(t => t.programId === currentUser.programId);
     }
     return state.requirementTemplates;
-  }, [isStudent, currentUser?.programId, state.requirementTemplates]);
+  })();
 
   const getProgress = (template: RequirementTemplate): number => {
     if (!isStudent) return 0;
@@ -51,11 +51,11 @@ const Requirements = () => {
     return sp?.currentCount ?? 0;
   };
 
-  const grouped = useMemo(() => {
+  const grouped = (() => {
     const map: Record<Category, RequirementTemplate[]> = { Skills: [], Hours: [], Documents: [], Evaluations: [] };
     for (const t of templates) map[t.category].push(t);
     return map;
-  }, [templates]);
+  })();
 
   const programName = (pid: string) => state.programs.find(p => p.id === pid)?.name ?? pid;
 
