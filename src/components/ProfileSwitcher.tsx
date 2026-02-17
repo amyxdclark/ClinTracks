@@ -1,0 +1,92 @@
+import { useApp } from '../AppContext';
+import type { User, Role } from '../types';
+
+interface ProfileSwitcherProps {
+  onClose: () => void;
+}
+
+const ProfileSwitcher = ({ onClose }: ProfileSwitcherProps) => {
+  const { state, updateState } = useApp();
+  
+  const switchProfile = (userId: string) => {
+    updateState(prev => ({
+      ...prev,
+      currentUserId: userId,
+    }));
+    onClose();
+  };
+
+  const getRoleColor = (role: Role) => {
+    const colors = {
+      Student: 'bg-blue-100 text-blue-800 border-blue-300',
+      Preceptor: 'bg-green-100 text-green-800 border-green-300',
+      Coordinator: 'bg-purple-100 text-purple-800 border-purple-300',
+      Admin: 'bg-red-100 text-red-800 border-red-300',
+    };
+    return colors[role];
+  };
+
+  const getRoleIcon = (role: Role) => {
+    const icons = {
+      Student: '🎓',
+      Preceptor: '👨‍⚕️',
+      Coordinator: '📊',
+      Admin: '⚙️',
+    };
+    return icons[role];
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-6">
+          <h2 className="text-2xl font-bold mb-2">Switch Profile</h2>
+          <p className="text-sm opacity-90">
+            Select a role to simulate different user experiences
+          </p>
+        </div>
+        
+        <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
+          {state.users.map((user: User) => (
+            <button
+              key={user.id}
+              onClick={() => switchProfile(user.id)}
+              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                user.id === state.currentUserId
+                  ? 'border-primary-500 bg-primary-50 shadow-md'
+                  : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-3xl">{getRoleIcon(user.role)}</span>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900">{user.name}</div>
+                  <div className="text-sm text-gray-600">{user.email}</div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getRoleColor(user.role)}`}>
+                  {user.role}
+                </span>
+              </div>
+              {user.id === state.currentUserId && (
+                <div className="mt-2 text-xs text-primary-600 font-medium">
+                  ✓ Currently Active
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+        
+        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+          <button
+            onClick={onClose}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileSwitcher;
