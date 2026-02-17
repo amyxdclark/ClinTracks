@@ -1,13 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { AppState } from './types';
+import type { AppState, AuditEvent } from './types';
 import { INITIAL_STATE } from './types';
-import { loadState, saveState } from './storage';
+import { loadState, debouncedSaveState } from './storage';
 
 interface AppContextType {
   state: AppState;
   updateState: (updater: (prevState: AppState) => AppState) => void;
   resetToDefaults: () => void;
+  addAuditEvent: (action: string, entityType: string, entityId: string, details?: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -16,24 +17,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [state, setState] = useState<AppState>(() => loadState());
 
   useEffect(() => {
-    saveState(state);
+    debouncedSaveState(state);
   }, [state]);
 
-  const updateState = (updater: (prevState: AppState) => AppState) => {
+  const updateState = useCallback((updater: (prevState: AppState) => AppState) => {
     setState(updater);
-  };
+  }, []);
 
-  const resetToDefaults = () => {
-    setState(INITIAL_STATE);
-  };
+  const resetToDefaults = useCallback(() => {
+    setState({ ...INITIAL_STATE, lastSavedAt: new Date().toISOString() });
+  }, []);
+
+  const addAuditEvent = useCallback((action: string, entityType: string, entityId: string, details?: string) => {
+    setState(prev => ({
+      ...prev,
+      audit: [...prev.audit, {
+        id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        action,
+        entityType,
+        entityId,
+        userId: prev.activeProfileId,
+        timestamp: new Date().toISOString(),
+        details,
+      } as AuditEvent],
+    }));
+  }, []);
 
   return (
-    <AppContext.Provider value={{ state, updateState, resetToDefaults }}>
+    <AppContext.Provider value={{ state, updateState, resetToDefaults, addAuditEvent }}>
       {children}
     </AppContext.Provider>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApp = () => {
   const context = useContext(AppContext);
   if (context === undefined) {
