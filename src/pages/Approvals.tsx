@@ -80,7 +80,7 @@ const Approvals = () => {
 
   if (!isReviewer) {
     return (
-      <div className="max-w-6xl mx-auto md:ml-64 px-4 pb-8">
+      <div className="max-w-6xl mx-auto pb-8">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center mt-8">
           <Inbox className="w-16 h-16 mx-auto text-gray-300 mb-4" />
           <h2 className="text-xl font-semibold text-gray-700 mb-2">Reviewer Access Only</h2>
@@ -93,7 +93,7 @@ const Approvals = () => {
   const items = activeTab === 'shifts' ? pendingShifts : pendingSkills;
 
   return (
-    <div className="max-w-6xl mx-auto md:ml-64 px-4 pb-8">
+    <div className="max-w-6xl mx-auto pb-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 mb-6 text-white">
         <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">

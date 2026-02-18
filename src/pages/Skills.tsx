@@ -98,7 +98,7 @@ const Skills = () => {
   const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent';
 
   return (
-    <div className="max-w-6xl mx-auto md:ml-64 px-4 pb-8">
+    <div className="max-w-6xl mx-auto pb-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

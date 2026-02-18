@@ -83,7 +83,7 @@ const Settings = () => {
   const activeProfile = state.profiles.find(p => p.id === state.activeProfileId);
 
   return (
-    <div className="max-w-4xl mx-auto md:ml-64">
+    <div className="max-w-4xl mx-auto">
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>

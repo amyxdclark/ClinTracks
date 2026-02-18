@@ -219,7 +219,7 @@ const Help = () => {
   }, [query, sections]);
 
   return (
-    <div className="max-w-4xl mx-auto md:ml-64">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
           <HelpCircle className="w-8 h-8 text-primary-500" />
