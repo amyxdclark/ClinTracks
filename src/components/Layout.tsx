@@ -29,7 +29,7 @@ const Layout = () => {
         <ProfileSwitcher onClose={() => setShowProfileSwitcher(false)} />
       )}
 
-      <main className="md:ml-64 container mx-auto px-4 py-6 pb-20 md:pb-6">
+      <main className="md:ml-64 pt-16 max-w-7xl px-4 py-6 pb-20 md:pb-6">
         <Outlet />
       </main>
     </div>

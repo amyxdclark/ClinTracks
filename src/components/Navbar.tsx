@@ -14,6 +14,7 @@ import {
   LogOut,
   FileText,
   BookOpen,
+  Cog,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -80,8 +81,8 @@ const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
   return (
     <>
       {/* Top bar */}
-      <header className="bg-white shadow-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-full w-full px-4 py-3 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center space-x-2">
             <span className="text-2xl">🏥</span>
             <span className="text-xl font-bold text-primary-600">ClinTrack</span>
@@ -168,7 +169,7 @@ const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
                 : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
             }`}
           >
-            <Settings size={20} />
+            <Cog size={20} />
             <span>Settings</span>
           </Link>
         </div>
