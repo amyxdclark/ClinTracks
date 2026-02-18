@@ -12,6 +12,8 @@ import {
   Target,
 } from 'lucide-react';
 
+const AT_RISK_THRESHOLD = 25;
+
 interface StudentSummary {
   id: string;
   name: string;
@@ -109,7 +111,7 @@ const Reports = () => {
     ? Math.round(studentSummaries.reduce((sum, s) => sum + s.completionPct, 0) / totalStudentCount)
     : 0;
   const totalHoursAcrossStudents = studentSummaries.reduce((sum, s) => sum + s.totalApprovedHours, 0);
-  const atRiskStudents = studentSummaries.filter(s => s.completionPct < 25 && s.totalRequirements > 0).length;
+  const atRiskStudents = studentSummaries.filter(s => s.completionPct < AT_RISK_THRESHOLD && s.totalRequirements > 0).length;
 
   const programName = (pid: string) => state.programs.find(p => p.id === pid)?.name ?? pid;
   const cohortName = (cid: string) => state.cohorts.find(c => c.id === cid)?.name ?? cid;

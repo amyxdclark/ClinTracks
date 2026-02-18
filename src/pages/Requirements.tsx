@@ -6,6 +6,8 @@ import { ClipboardCheck, BookOpen, FileText, Award, CheckCircle, AlertTriangle, 
 const CATEGORIES = ['Skills', 'Hours', 'Documents', 'Evaluations'] as const;
 type Category = (typeof CATEGORIES)[number];
 
+const EXPIRATION_WARNING_DAYS = 30;
+
 const categoryMeta: Record<Category, { icon: typeof ClipboardCheck; gradient: string }> = {
   Skills: { icon: ClipboardCheck, gradient: 'from-blue-500 to-blue-700' },
   Hours: { icon: BookOpen, gradient: 'from-emerald-500 to-emerald-700' },
@@ -256,7 +258,7 @@ const Requirements = () => {
                   today.setHours(0, 0, 0, 0);
                   const daysUntil = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                   const isExpired = daysUntil < 0;
-                  const isExpiringSoon = daysUntil >= 0 && daysUntil <= 30;
+                  const isExpiringSoon = daysUntil >= 0 && daysUntil <= EXPIRATION_WARNING_DAYS;
                   return (
                     <div className={`mt-2 flex items-center gap-2 text-sm rounded-lg px-3 py-2 ${
                       isExpired ? 'bg-red-50 text-red-700' : isExpiringSoon ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'
