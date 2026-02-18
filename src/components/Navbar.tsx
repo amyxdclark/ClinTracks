@@ -12,6 +12,8 @@ import {
   Settings,
   HelpCircle,
   LogOut,
+  Bell,
+  BarChart3,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -33,6 +35,8 @@ const allNavItems: NavItem[] = [
   { path: '/skills', label: 'Skills', icon: Star },
   { path: '/scheduling', label: 'Schedule', icon: Calendar },
   { path: '/approvals', label: 'Approvals', icon: Inbox },
+  { path: '/reports', label: 'Reports', icon: BarChart3 },
+  { path: '/notifications', label: 'Notifications', icon: Bell },
   { path: '/admin', label: 'Admin Setup', icon: Settings },
   { path: '/help', label: 'Help', icon: HelpCircle },
 ];
@@ -40,11 +44,11 @@ const allNavItems: NavItem[] = [
 /** Return nav items visible for the given role */
 const getNavForRole = (role: Role): NavItem[] => {
   const visiblePaths: Record<Role, string[]> = {
-    Student: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/scheduling', '/help'],
-    Preceptor: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/approvals', '/help'],
-    Instructor: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/approvals', '/help'],
-    Coordinator: ['/dashboard', '/requirements', '/scheduling', '/approvals', '/admin', '/help'],
-    ProgramAdmin: ['/dashboard', '/requirements', '/approvals', '/admin', '/help'],
+    Student: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/scheduling', '/notifications', '/help'],
+    Preceptor: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/approvals', '/notifications', '/help'],
+    Instructor: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/approvals', '/reports', '/notifications', '/help'],
+    Coordinator: ['/dashboard', '/requirements', '/scheduling', '/approvals', '/reports', '/notifications', '/admin', '/help'],
+    ProgramAdmin: ['/dashboard', '/requirements', '/approvals', '/reports', '/notifications', '/admin', '/help'],
   };
   const paths = visiblePaths[role];
   return allNavItems.filter(item => paths.includes(item.path));
@@ -53,11 +57,11 @@ const getNavForRole = (role: Role): NavItem[] => {
 /** Mobile bottom bar shows at most 5 items */
 const getMobileNav = (role: Role): NavItem[] => {
   const mobileOrder: Record<Role, string[]> = {
-    Student: ['/dashboard', '/shift-hours', '/skills', '/scheduling', '/requirements'],
-    Preceptor: ['/dashboard', '/shift-hours', '/skills', '/approvals', '/requirements'],
-    Instructor: ['/dashboard', '/shift-hours', '/skills', '/approvals', '/requirements'],
-    Coordinator: ['/dashboard', '/scheduling', '/approvals', '/admin', '/requirements'],
-    ProgramAdmin: ['/dashboard', '/approvals', '/admin', '/requirements', '/help'],
+    Student: ['/dashboard', '/shift-hours', '/skills', '/notifications', '/requirements'],
+    Preceptor: ['/dashboard', '/shift-hours', '/skills', '/approvals', '/notifications'],
+    Instructor: ['/dashboard', '/approvals', '/reports', '/notifications', '/requirements'],
+    Coordinator: ['/dashboard', '/scheduling', '/approvals', '/reports', '/notifications'],
+    ProgramAdmin: ['/dashboard', '/approvals', '/reports', '/notifications', '/admin'],
   };
   const paths = mobileOrder[role];
   return allNavItems.filter(item => paths.includes(item.path));
@@ -65,11 +69,16 @@ const getMobileNav = (role: Role): NavItem[] => {
 
 const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
   const location = useLocation();
-  const { logout } = useApp();
+  const { state, logout } = useApp();
   const role = currentProfile?.role ?? 'Student';
 
   const sidebarItems = useMemo(() => getNavForRole(role), [role]);
   const mobileItems = useMemo(() => getMobileNav(role), [role]);
+
+  const unreadCount = useMemo(
+    () => state.notifications.filter(n => n.userId === state.activeProfileId && !n.read).length,
+    [state.notifications, state.activeProfileId],
+  );
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -113,11 +122,12 @@ const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
         <div className="flex justify-around items-center py-2">
           {mobileItems.map(item => {
             const Icon = item.icon;
+            const showBadge = item.path === '/notifications' && unreadCount > 0;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center px-3 py-1 rounded-lg transition-colors ${
+                className={`relative flex flex-col items-center px-3 py-1 rounded-lg transition-colors ${
                   isActive(item.path)
                     ? 'text-primary-600 bg-primary-50'
                     : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
@@ -125,6 +135,11 @@ const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
                 title={item.label}
               >
                 <Icon size={20} />
+                {showBadge && (
+                  <span className="absolute -top-1 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
                 <span className="text-xs mt-0.5">{item.label}</span>
               </Link>
             );
@@ -137,6 +152,7 @@ const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
         <div className="flex-1 p-4 space-y-1">
           {sidebarItems.map(item => {
             const Icon = item.icon;
+            const showBadge = item.path === '/notifications' && unreadCount > 0;
             return (
               <Link
                 key={item.path}
@@ -148,7 +164,12 @@ const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
                 }`}
               >
                 <Icon size={20} />
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {showBadge && (
+                  <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[1.25rem] text-center">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

@@ -14,7 +14,7 @@ const statusBadge = (status: string) => {
 };
 
 const ShiftHoursPage = () => {
-  const { state, updateState } = useApp();
+  const { state, updateState, addNotification } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -91,12 +91,24 @@ const ShiftHoursPage = () => {
   };
 
   const updateShiftStatus = (id: string, status: 'submitted' | 'approved' | 'rejected') => {
+    const shift = state.shiftLogs.find(s => s.id === id);
     updateState(prev => ({
       ...prev,
       shiftLogs: prev.shiftLogs.map(s =>
         s.id === id ? { ...s, status, updatedAt: new Date().toISOString() } : s
       ),
     }));
+    // Notify student when their shift is approved or rejected from this page
+    if (shift && (status === 'approved' || status === 'rejected')) {
+      const reviewerName = currentUser?.name ?? 'A reviewer';
+      addNotification(
+        shift.studentId,
+        `Shift ${status}`,
+        `${reviewerName} ${status} your shift log for ${new Date(shift.date).toLocaleDateString()}`,
+        status === 'approved' ? 'approval' : 'rejection',
+        '/shift-hours',
+      );
+    }
   };
 
   const sortedShifts = [...userShifts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

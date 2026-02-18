@@ -12,6 +12,8 @@ import AdminSetup from './pages/AdminSetup';
 import Settings from './pages/Settings';
 import Onboarding from './pages/Onboarding';
 import Help from './pages/Help';
+import Notifications from './pages/Notifications';
+import Reports from './pages/Reports';
 
 const AppRoutes = () => {
   const { state } = useApp();
@@ -36,6 +38,8 @@ const AppRoutes = () => {
         <Route path="approvals" element={<Approvals />} />
         <Route path="admin" element={<AdminSetup />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="reports" element={<Reports />} />
         <Route path="onboarding" element={<Onboarding />} />
         <Route path="help" element={<Help />} />
       </Route>

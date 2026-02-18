@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { AppState, AuditEvent } from './types';
+import type { AppState, AuditEvent, Notification } from './types';
 import { INITIAL_STATE } from './types';
 import { loadState, debouncedSaveState } from './storage';
 
@@ -9,6 +9,7 @@ interface AppContextType {
   updateState: (updater: (prevState: AppState) => AppState) => void;
   resetToDefaults: () => void;
   addAuditEvent: (action: string, entityType: string, entityId: string, details?: string) => void;
+  addNotification: (userId: string, title: string, message: string, type: Notification['type'], linkTo?: string) => void;
   login: (profileId: string) => void;
   logout: () => void;
 }
@@ -45,6 +46,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
   }, []);
 
+  const addNotification = useCallback((userId: string, title: string, message: string, type: Notification['type'], linkTo?: string) => {
+    setState(prev => ({
+      ...prev,
+      notifications: [...prev.notifications, {
+        id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        userId,
+        title,
+        message,
+        type,
+        read: false,
+        createdAt: new Date().toISOString(),
+        linkTo,
+      } as Notification],
+    }));
+  }, []);
+
   const login = useCallback((profileId: string) => {
     setState(prev => ({
       ...prev,
@@ -61,7 +78,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, []);
 
   return (
-    <AppContext.Provider value={{ state, updateState, resetToDefaults, addAuditEvent, login, logout }}>
+    <AppContext.Provider value={{ state, updateState, resetToDefaults, addAuditEvent, addNotification, login, logout }}>
       {children}
     </AppContext.Provider>
   );

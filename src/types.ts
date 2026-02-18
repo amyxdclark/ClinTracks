@@ -59,6 +59,18 @@ export interface StudentRequirementProgress {
   templateId: string;
   currentCount: number;
   status: 'in_progress' | 'completed';
+  expirationDate?: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'approval' | 'rejection' | 'reminder' | 'info';
+  read: boolean;
+  createdAt: string;
+  linkTo?: string;
 }
 
 export interface ShiftLog {
@@ -141,6 +153,7 @@ export interface AppState {
   skillLogs: SkillLog[];
   approvals: Approval[];
   scheduleRequests: ScheduleRequest[];
+  notifications: Notification[];
   audit: AuditEvent[];
   hasSeenOnboarding: boolean;
 }
@@ -345,6 +358,7 @@ export const INITIAL_STATE: AppState = {
   skillLogs: [],
   approvals: [],
   scheduleRequests: [],
+  notifications: [],
   audit: [],
   hasSeenOnboarding: false,
 };
