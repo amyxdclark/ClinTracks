@@ -18,7 +18,7 @@ const AGE_RANGES = ['Pediatric', 'Adult', 'Geriatric'];
 const COMPLAINT_CATEGORIES = ['Cardiac', 'Respiratory', 'Trauma', 'Medical', 'Other'];
 
 const Skills = () => {
-  const { state, updateState } = useApp();
+  const { state, updateState, addNotification } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [skillName, setSkillName] = useState('');
   const [skillType, setSkillType] = useState('');
@@ -85,12 +85,24 @@ const Skills = () => {
   };
 
   const updateSkillStatus = (id: string, status: 'submitted' | 'approved' | 'rejected') => {
+    const skill = state.skillLogs.find(s => s.id === id);
     updateState(prev => ({
       ...prev,
       skillLogs: prev.skillLogs.map(s =>
         s.id === id ? { ...s, status, updatedAt: new Date().toISOString() } : s
       ),
     }));
+    // Notify student when their skill is approved or rejected from this page
+    if (skill && (status === 'approved' || status === 'rejected')) {
+      const reviewerName = currentUser?.name ?? 'A reviewer';
+      addNotification(
+        skill.studentId,
+        `Skill ${status}`,
+        `${reviewerName} ${status} your skill log for "${skill.skillName}"`,
+        status === 'approved' ? 'approval' : 'rejection',
+        '/skills',
+      );
+    }
   };
 
   const sortedSkills = [...userSkills].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

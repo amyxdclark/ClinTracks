@@ -4,7 +4,7 @@ import type { Approval } from '../types';
 import { Inbox, Check, X, Clock, FileText, Activity, MessageSquare } from 'lucide-react';
 
 const Approvals = () => {
-  const { state, updateState, addAuditEvent } = useApp();
+  const { state, updateState, addAuditEvent, addNotification } = useApp();
   const [activeTab, setActiveTab] = useState<'shifts' | 'skills'>('shifts');
   const [comments, setComments] = useState<Record<string, string>>({});
 
@@ -41,6 +41,11 @@ const Approvals = () => {
       decidedAt: now,
     };
 
+    // Find the student who submitted this item
+    const studentId = entityType === 'shift'
+      ? state.shiftLogs.find(s => s.id === entityId)?.studentId
+      : state.skillLogs.find(s => s.id === entityId)?.studentId;
+
     updateState(prev => {
       const updatedShiftLogs =
         entityType === 'shift'
@@ -71,12 +76,27 @@ const Approvals = () => {
       comments[entityId] ? `Comment: ${comments[entityId]}` : undefined,
     );
 
+    // Send notification to the student
+    if (studentId) {
+      const reviewerName = state.profiles.find(p => p.id === state.activeProfileId)?.name ?? 'A reviewer';
+      const itemLabel = entityType === 'shift' ? 'shift log' : 'skill log';
+      const notifType = decision === 'approved' ? 'approval' : 'rejection';
+      const commentText = comments[entityId] ? ` — "${comments[entityId]}"` : '';
+      addNotification(
+        studentId,
+        `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} ${decision}`,
+        `${reviewerName} ${decision} your ${itemLabel}${commentText}`,
+        notifType,
+        entityType === 'shift' ? '/shift-hours' : '/skills',
+      );
+    }
+
     setComments(prev => {
       const next = { ...prev };
       delete next[entityId];
       return next;
     });
-  }, [state.activeProfileId, comments, updateState, addAuditEvent]);
+  }, [state.activeProfileId, state.shiftLogs, state.skillLogs, state.profiles, comments, updateState, addAuditEvent, addNotification]);
 
   if (!isReviewer) {
     return (

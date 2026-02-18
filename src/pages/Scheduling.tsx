@@ -21,7 +21,7 @@ const capacityColor = (approved: number, total: number) => {
 };
 
 const Scheduling = () => {
-  const { state, updateState, addAuditEvent } = useApp();
+  const { state, updateState, addAuditEvent, addNotification } = useApp();
   const [showCapacityModal, setShowCapacityModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [capSiteId, setCapSiteId] = useState('');
@@ -120,6 +120,19 @@ const Scheduling = () => {
       scheduleRequests: prev.scheduleRequests.map(r => r.id === id ? { ...r, status: decision } : r),
     }));
     addAuditEvent(`schedule_${decision}`, 'scheduleRequest', id);
+
+    // Send notification to the student
+    if (req) {
+      const site = state.sites.find(s => s.id === req.siteId);
+      const dateStr = new Date(req.date + 'T00:00:00').toLocaleDateString();
+      addNotification(
+        req.studentId,
+        `Schedule request ${decision}`,
+        `Your request for ${site?.name ?? 'a site'} on ${dateStr} has been ${decision}.`,
+        decision === 'approved' ? 'approval' : 'rejection',
+        '/scheduling',
+      );
+    }
   };
 
   const siteName = (id: string) => state.sites.find(s => s.id === id)?.name ?? id;

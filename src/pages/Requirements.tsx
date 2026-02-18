@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useApp } from '../AppContext';
 import type { RequirementTemplate } from '../types';
-import { ClipboardCheck, BookOpen, FileText, Award, CheckCircle, AlertTriangle, Plus, Target } from 'lucide-react';
+import { ClipboardCheck, BookOpen, FileText, Award, CheckCircle, AlertTriangle, Plus, Target, CalendarClock } from 'lucide-react';
 
 const CATEGORIES = ['Skills', 'Hours', 'Documents', 'Evaluations'] as const;
 type Category = (typeof CATEGORIES)[number];
+
+const EXPIRATION_WARNING_DAYS = 30;
 
 const categoryMeta: Record<Category, { icon: typeof ClipboardCheck; gradient: string }> = {
   Skills: { icon: ClipboardCheck, gradient: 'from-blue-500 to-blue-700' },
@@ -18,6 +20,7 @@ const Requirements = () => {
   const [activeCategory, setActiveCategory] = useState<Category>('Skills');
   const [evidenceModal, setEvidenceModal] = useState<RequirementTemplate | null>(null);
   const [evidenceNotes, setEvidenceNotes] = useState('');
+  const [expirationDate, setExpirationDate] = useState('');
   const [noPHI, setNoPHI] = useState(false);
 
   const currentUser = state.profiles.find(u => u.id === state.activeProfileId);
@@ -63,6 +66,7 @@ const Requirements = () => {
     if (!evidenceModal || !noPHI) return;
     const tid = evidenceModal.id;
     const uid = state.activeProfileId;
+    const expDate = expirationDate || undefined;
     updateState(prev => {
       const existing = prev.studentProgress.find(p => p.studentId === uid && p.templateId === tid);
       if (existing) {
@@ -71,7 +75,7 @@ const Requirements = () => {
           ...prev,
           studentProgress: prev.studentProgress.map(p =>
             p.id === existing.id
-              ? { ...p, currentCount: newCount, status: newCount >= evidenceModal.targetCount ? 'completed' as const : 'in_progress' as const }
+              ? { ...p, currentCount: newCount, status: newCount >= evidenceModal.targetCount ? 'completed' as const : 'in_progress' as const, expirationDate: expDate ?? p.expirationDate }
               : p
           ),
         };
@@ -84,12 +88,14 @@ const Requirements = () => {
           templateId: tid,
           currentCount: 1,
           status: 1 >= evidenceModal.targetCount ? 'completed' as const : 'in_progress' as const,
+          expirationDate: expDate,
         }],
       };
     });
     addAuditEvent('add_evidence', 'studentProgress', tid, evidenceNotes || undefined);
     setEvidenceModal(null);
     setEvidenceNotes('');
+    setExpirationDate('');
     setNoPHI(false);
   };
 
@@ -241,6 +247,34 @@ const Requirements = () => {
                   </p>
                 )}
 
+                {/* Expiration date for Documents (student only) */}
+                {isStudent && template.category === 'Documents' && (() => {
+                  const sp = state.studentProgress.find(
+                    p => p.studentId === state.activeProfileId && p.templateId === template.id
+                  );
+                  if (!sp?.expirationDate) return null;
+                  const expDate = new Date(sp.expirationDate + 'T00:00:00');
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const daysUntil = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  const isExpired = daysUntil < 0;
+                  const isExpiringSoon = daysUntil >= 0 && daysUntil <= EXPIRATION_WARNING_DAYS;
+                  return (
+                    <div className={`mt-2 flex items-center gap-2 text-sm rounded-lg px-3 py-2 ${
+                      isExpired ? 'bg-red-50 text-red-700' : isExpiringSoon ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'
+                    }`}>
+                      <CalendarClock className="w-4 h-4 flex-shrink-0" />
+                      <span>
+                        {isExpired
+                          ? `Expired ${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''} ago (${expDate.toLocaleDateString()})`
+                          : isExpiringSoon
+                            ? `Expires in ${daysUntil} day${daysUntil !== 1 ? 's' : ''} (${expDate.toLocaleDateString()})`
+                            : `Valid until ${expDate.toLocaleDateString()}`}
+                      </span>
+                    </div>
+                  );
+                })()}
+
                 {/* Add Evidence button for Documents / Evaluations (student only) */}
                 {isStudent && (template.category === 'Documents' || template.category === 'Evaluations') && current < template.targetCount && (
                   <div className="mt-3">
@@ -286,6 +320,24 @@ const Requirements = () => {
                 />
               </div>
 
+              {evidenceModal.category === 'Documents' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <CalendarClock className="w-4 h-4 inline mr-1" />
+                    Expiration Date (optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={expirationDate}
+                    onChange={e => setExpirationDate(e.target.value)}
+                    className={inputClass}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    When does this certification or document expire?
+                  </p>
+                </div>
+              )}
+
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
@@ -302,7 +354,7 @@ const Requirements = () => {
 
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => { setEvidenceModal(null); setEvidenceNotes(''); setNoPHI(false); }}
+                  onClick={() => { setEvidenceModal(null); setEvidenceNotes(''); setExpirationDate(''); setNoPHI(false); }}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-800 font-medium py-3 px-4 rounded-xl transition-colors"
                 >
                   Cancel

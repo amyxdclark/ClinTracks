@@ -91,6 +91,7 @@ export const mergeState = (current: AppState, incoming: AppState): AppState => {
     skillLogs: mergeArrays(current.skillLogs, incoming.skillLogs),
     approvals: mergeArrays(current.approvals, incoming.approvals),
     scheduleRequests: mergeArrays(current.scheduleRequests, incoming.scheduleRequests),
+    notifications: mergeArrays(current.notifications, incoming.notifications),
     audit: (() => {
       const existingIds = new Set(current.audit.map(a => a.id));
       return [...current.audit, ...incoming.audit.filter(a => !existingIds.has(a.id))];
