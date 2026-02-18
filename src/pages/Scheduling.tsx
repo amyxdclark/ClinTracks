@@ -213,12 +213,13 @@ const Scheduling = () => {
     };
     
     // Create notification for the student
+    const siteName = state.sites.find(s => s.id === assignSiteId)?.name || 'Unknown Site';
     const notification: Notification = {
       id: genId('notif'),
       userId: assignStudentId,
       type: 'schedule_approved',
       title: 'Clinical Shift Assigned',
-      message: `You have been assigned a clinical shift at ${state.sites.find(s => s.id === assignSiteId)?.name} on ${new Date(assignDate).toLocaleDateString()}`,
+      message: `You have been assigned a clinical shift at ${siteName} on ${new Date(assignDate).toLocaleDateString()}`,
       read: false,
       createdAt: new Date().toISOString(),
       relatedEntityId: newReq.id,
@@ -246,14 +247,15 @@ const Scheduling = () => {
     }
 
     // Create notification for the student
+    const reqSiteName = state.sites.find(s => s.id === req.siteId)?.name || 'Unknown Site';
     const notification: Notification = {
       id: genId('notif'),
       userId: req.studentId,
       type: decision === 'approved' ? 'schedule_approved' : 'schedule_rejected',
       title: decision === 'approved' ? 'Shift Request Approved' : 'Shift Request Denied',
       message: decision === 'approved'
-        ? `Your clinical shift request at ${state.sites.find(s => s.id === req.siteId)?.name} on ${new Date(req.date).toLocaleDateString()} has been approved.`
-        : `Your clinical shift request at ${state.sites.find(s => s.id === req.siteId)?.name} on ${new Date(req.date).toLocaleDateString()} has been denied.`,
+        ? `Your clinical shift request at ${reqSiteName} on ${new Date(req.date).toLocaleDateString()} has been approved.`
+        : `Your clinical shift request at ${reqSiteName} on ${new Date(req.date).toLocaleDateString()} has been denied.`,
       read: false,
       createdAt: new Date().toISOString(),
       relatedEntityId: id,

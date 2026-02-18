@@ -984,7 +984,7 @@ const QuizManagement = () => {
                           onChange={e => setQuestionOptions(e.target.value)}
                           className={inputClass}
                           rows={4}
-                          placeholder="Option A&#10;Option B&#10;Option C&#10;Option D"
+                          placeholder={"Option A\nOption B\nOption C\nOption D"}
                         />
                       </div>
                     )}

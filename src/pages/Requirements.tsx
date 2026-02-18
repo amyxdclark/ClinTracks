@@ -14,6 +14,8 @@ const categoryMeta: Record<Category, { icon: typeof ClipboardCheck; gradient: st
   Evaluations: { icon: Award, gradient: 'from-purple-500 to-purple-700' },
 };
 
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
 const Requirements = () => {
   const { state, updateState, addAuditEvent } = useApp();
   const [activeCategory, setActiveCategory] = useState<Category>('Skills');
@@ -71,7 +73,7 @@ const Requirements = () => {
     if (!file) return;
     
     // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
       alert('File size must be less than 5MB');
       return;
     }
