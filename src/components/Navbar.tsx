@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useApp } from '../AppContext';
 import type { UserProfile, Role } from '../types';
 import {
   LayoutDashboard,
@@ -10,6 +11,7 @@ import {
   Inbox,
   Settings,
   HelpCircle,
+  LogOut,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -63,6 +65,7 @@ const getMobileNav = (role: Role): NavItem[] => {
 
 const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
   const location = useLocation();
+  const { logout } = useApp();
   const role = currentProfile?.role ?? 'Student';
 
   const sidebarItems = useMemo(() => getNavForRole(role), [role]);
@@ -80,18 +83,28 @@ const Navbar = ({ onProfileClick, currentProfile }: NavbarProps) => {
             <span className="text-xl font-bold text-primary-600">ClinTrack</span>
           </Link>
 
-          <button
-            onClick={onProfileClick}
-            className="flex items-center space-x-2 bg-primary-100 hover:bg-primary-200 px-3 py-2 rounded-lg transition-colors"
-            title="Switch Profile"
-          >
-            <span className="text-sm font-medium text-primary-800">
-              {currentProfile?.name || 'User'}
-            </span>
-            <span className="text-xs bg-primary-500 text-white px-2 py-0.5 rounded">
-              {currentProfile?.role || 'Student'}
-            </span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onProfileClick}
+              className="flex items-center space-x-2 bg-primary-100 hover:bg-primary-200 px-3 py-2 rounded-lg transition-colors"
+              title="Switch Profile"
+            >
+              <span className="text-sm font-medium text-primary-800">
+                {currentProfile?.name || 'User'}
+              </span>
+              <span className="text-xs bg-primary-500 text-white px-2 py-0.5 rounded">
+                {currentProfile?.role || 'Student'}
+              </span>
+            </button>
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-colors text-gray-700"
+              title="Sign Out"
+            >
+              <LogOut size={16} />
+              <span className="text-sm font-medium hidden sm:inline">Sign Out</span>
+            </button>
+          </div>
         </div>
       </header>
 

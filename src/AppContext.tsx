@@ -9,6 +9,8 @@ interface AppContextType {
   updateState: (updater: (prevState: AppState) => AppState) => void;
   resetToDefaults: () => void;
   addAuditEvent: (action: string, entityType: string, entityId: string, details?: string) => void;
+  login: (profileId: string) => void;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -43,8 +45,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
   }, []);
 
+  const login = useCallback((profileId: string) => {
+    setState(prev => ({
+      ...prev,
+      isLoggedIn: true,
+      activeProfileId: profileId,
+    }));
+  }, []);
+
+  const logout = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isLoggedIn: false,
+    }));
+  }, []);
+
   return (
-    <AppContext.Provider value={{ state, updateState, resetToDefaults, addAuditEvent }}>
+    <AppContext.Provider value={{ state, updateState, resetToDefaults, addAuditEvent, login, logout }}>
       {children}
     </AppContext.Provider>
   );

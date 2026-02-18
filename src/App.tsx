@@ -1,6 +1,7 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider } from './AppContext';
+import { AppProvider, useApp } from './AppContext';
 import Layout from './components/Layout';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Requirements from './pages/Requirements';
 import ShiftHours from './pages/ShiftHours';
@@ -12,25 +13,41 @@ import Settings from './pages/Settings';
 import Onboarding from './pages/Onboarding';
 import Help from './pages/Help';
 
+const AppRoutes = () => {
+  const { state } = useApp();
+
+  if (!state.isLoggedIn) {
+    return (
+      <Routes>
+        <Route path="*" element={<Login />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="requirements" element={<Requirements />} />
+        <Route path="shift-hours" element={<ShiftHours />} />
+        <Route path="skills" element={<Skills />} />
+        <Route path="scheduling" element={<Scheduling />} />
+        <Route path="approvals" element={<Approvals />} />
+        <Route path="admin" element={<AdminSetup />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="onboarding" element={<Onboarding />} />
+        <Route path="help" element={<Help />} />
+      </Route>
+    </Routes>
+  );
+};
+
 function App() {
   return (
     <AppProvider>
       <Router>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="requirements" element={<Requirements />} />
-            <Route path="shift-hours" element={<ShiftHours />} />
-            <Route path="skills" element={<Skills />} />
-            <Route path="scheduling" element={<Scheduling />} />
-            <Route path="approvals" element={<Approvals />} />
-            <Route path="admin" element={<AdminSetup />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="onboarding" element={<Onboarding />} />
-            <Route path="help" element={<Help />} />
-          </Route>
-        </Routes>
+        <AppRoutes />
       </Router>
     </AppProvider>
   );
