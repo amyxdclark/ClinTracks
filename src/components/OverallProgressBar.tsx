@@ -5,7 +5,7 @@ interface OverallProgressBarProps {
 }
 
 const OverallProgressBar = ({ completed, total, label = 'Overall Progress' }: OverallProgressBarProps) => {
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const percentage = total > 0 ? Math.min(Math.round((completed / total) * 100), 100) : 0;
   
   // Color based on progress
   const getColorClass = () => {
