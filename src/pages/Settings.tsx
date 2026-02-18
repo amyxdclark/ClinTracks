@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { useApp } from '../AppContext';
 import { exportState, importState, resetState, mergeState } from '../storage';
-import { Settings as SettingsIcon, Download, Upload, Trash2, RotateCcw, Info, Database, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Download, Upload, Trash2, RotateCcw, Info, Database, Shield, User, Clock, ClipboardCheck, Calendar } from 'lucide-react';
 import type { AppState } from '../types';
+import HelpIcon from '../components/HelpIcon';
 
 type ImportMode = 'replace' | 'merge';
 
@@ -81,9 +82,17 @@ const Settings = () => {
   };
 
   const activeProfile = state.profiles.find(p => p.id === state.activeProfileId);
+  const role = activeProfile?.role ?? 'Student';
+  const isStudent = role === 'Student';
+  const isAdminOrCoordinator = role === 'ProgramAdmin' || role === 'Coordinator';
+
+  // Role-specific stats
+  const myShifts = state.shiftLogs.filter(s => s.studentId === state.activeProfileId);
+  const mySkills = state.skillLogs.filter(s => s.studentId === state.activeProfileId);
+  const approvedHours = myShifts.filter(s => s.status === 'approved').reduce((sum, s) => sum + s.computedHours, 0);
 
   return (
-    <div className="max-w-4xl mx-auto md:ml-64">
+    <div className="max-w-4xl mx-auto">
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -150,28 +159,90 @@ const Settings = () => {
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Info className="w-5 h-5 text-blue-600" />
             App Information
+            <HelpIcon 
+              title="App Information"
+              content={
+                <p>This section shows statistics about your ClinTrack data. The information displayed varies based on your role.</p>
+              }
+            />
           </h2>
 
           <div className="space-y-2 text-sm">
-            {[
-              ['Version', state.version],
-              ['Active Profile', activeProfile ? `${activeProfile.name} (${activeProfile.role})` : '—'],
-              ['Profiles', state.profiles.length],
-              ['Programs', state.programs.length],
-              ['Clinical Sites', state.sites.length],
-              ['Requirement Templates', state.requirementTemplates.length],
-              ['Shift Logs', state.shiftLogs.length],
-              ['Skill Logs', state.skillLogs.length],
-              ['Approvals', state.approvals.length],
-              ['Audit Events', state.audit.length],
-            ].map(([label, value], i, arr) => (
-              <div key={label as string} className={`flex justify-between py-2 ${i < arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
-                <span className="text-gray-600">{label}</span>
-                <span className="font-medium">{value}</span>
-              </div>
-            ))}
+            {/* Role-specific information */}
+            {isStudent && (
+              <>
+                {[
+                  ['Active Profile', activeProfile ? `${activeProfile.name} (${activeProfile.role})` : '—'],
+                  ['My Shift Logs', myShifts.length],
+                  ['My Skill Logs', mySkills.length],
+                  ['Approved Hours', approvedHours.toFixed(1)],
+                  ['Pending Submissions', myShifts.filter(s => s.status === 'submitted').length + mySkills.filter(s => s.status === 'submitted').length],
+                ].map(([label, value], i, arr) => (
+                  <div key={label as string} className={`flex justify-between py-2 ${i < arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                    <span className="text-gray-600">{label}</span>
+                    <span className="font-medium">{value}</span>
+                  </div>
+                ))}
+              </>
+            )}
+            
+            {!isStudent && (
+              <>
+                {[
+                  ['Version', state.version],
+                  ['Active Profile', activeProfile ? `${activeProfile.name} (${activeProfile.role})` : '—'],
+                  ...(isAdminOrCoordinator ? [
+                    ['Profiles', state.profiles.length],
+                    ['Programs', state.programs.length],
+                    ['Clinical Sites', state.sites.length],
+                    ['Requirement Templates', state.requirementTemplates.length],
+                  ] : []),
+                  ['Shift Logs', state.shiftLogs.length],
+                  ['Skill Logs', state.skillLogs.length],
+                  ['Approvals', state.approvals.length],
+                  ...(isAdminOrCoordinator ? [['Audit Events', state.audit.length]] : []),
+                ].map(([label, value], i, arr) => (
+                  <div key={label as string} className={`flex justify-between py-2 ${i < arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                    <span className="text-gray-600">{label}</span>
+                    <span className="font-medium">{value}</span>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
+
+        {/* Student-specific: My Progress Summary */}
+        {isStudent && (
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-600" />
+              My Progress Summary
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 rounded-lg p-4 text-center">
+                <Clock className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-blue-900">{approvedHours.toFixed(1)}</p>
+                <p className="text-sm text-blue-700">Approved Hours</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <ClipboardCheck className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-green-900">{mySkills.filter(s => s.status === 'approved').length}</p>
+                <p className="text-sm text-green-700">Approved Skills</p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4 text-center">
+                <Calendar className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-purple-900">{myShifts.length}</p>
+                <p className="text-sm text-purple-700">Total Shifts</p>
+              </div>
+              <div className="bg-orange-50 rounded-lg p-4 text-center">
+                <ClipboardCheck className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-orange-900">{mySkills.length}</p>
+                <p className="text-sm text-orange-700">Total Skills</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Onboarding */}
         <div className="bg-white rounded-xl shadow-lg p-6">
@@ -191,28 +262,36 @@ const Settings = () => {
           </button>
         </div>
 
-        {/* Danger Zone */}
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-red-600" />
-            Danger Zone
-          </h2>
+        {/* Danger Zone - Only for admins */}
+        {isAdminOrCoordinator && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-600" />
+              Danger Zone
+              <HelpIcon 
+                title="Danger Zone"
+                content={
+                  <p className="text-red-700">This section contains destructive actions that cannot be undone. Only Program Admins and Coordinators can access this area. Always export a backup before making changes.</p>
+                }
+              />
+            </h2>
 
-          <div>
-            <h3 className="font-semibold text-red-900 mb-2">Reset Demo Data</h3>
-            <p className="text-sm text-red-800 mb-3">
-              This will permanently delete all your data and reset the app to its initial demo state.
-              <strong> This action cannot be undone!</strong> Export a backup first if needed.
-            </p>
-            <button
-              onClick={() => setShowResetConfirm(true)}
-              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-              Reset Demo Data
-            </button>
+            <div>
+              <h3 className="font-semibold text-red-900 mb-2">Reset Demo Data</h3>
+              <p className="text-sm text-red-800 mb-3">
+                This will permanently delete all your data and reset the app to its initial demo state.
+                <strong> This action cannot be undone!</strong> Export a backup first if needed.
+              </p>
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Reset Demo Data
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* About */}
         <div className="bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl shadow-lg p-6 text-white">

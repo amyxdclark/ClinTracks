@@ -12,9 +12,14 @@ import {
   Activity,
   TrendingUp,
   Settings,
+  CheckCircle,
+  XCircle,
+  FileText,
 } from 'lucide-react';
 import { useApp } from '../AppContext';
 import type { RequirementTemplate, ShiftLog } from '../types';
+import OverallProgressBar from '../components/OverallProgressBar';
+import HelpIcon from '../components/HelpIcon';
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -174,7 +179,7 @@ const Dashboard = () => {
     state.skillLogs.filter((s) => s.status === 'submitted').length;
 
   return (
-    <div className="max-w-6xl mx-auto md:ml-64">
+    <div className="max-w-6xl mx-auto">
       {/* Welcome header */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">
@@ -190,6 +195,13 @@ const Dashboard = () => {
       {/* ─── STUDENT DASHBOARD ─── */}
       {isStudent && (
         <>
+          {/* Overall Progress Bar */}
+          <OverallProgressBar 
+            completed={completedCount} 
+            total={programTemplates.length}
+            label="Clinical Requirements Progress"
+          />
+
           {/* Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
@@ -221,6 +233,16 @@ const Dashboard = () => {
           {/* Quick actions */}
           <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
             <Plus className="w-5 h-5 text-blue-500" /> Quick Actions
+            <HelpIcon 
+              title="Quick Actions"
+              content={
+                <div className="space-y-2">
+                  <p><strong>Log Shift:</strong> Record your clinical hours at a site. Include start/end times and break duration.</p>
+                  <p><strong>Log Skill:</strong> Document a clinical skill you performed. Link it to a shift for better tracking.</p>
+                  <p><strong>View Requirements:</strong> See all program requirements and your progress toward completion.</p>
+                </div>
+              }
+            />
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <QuickAction
@@ -250,6 +272,18 @@ const Dashboard = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-500" /> Requirement Progress
+              <HelpIcon 
+                title="Requirement Progress"
+                content={
+                  <div className="space-y-2">
+                    <p>This section shows your progress toward completing all program requirements.</p>
+                    <p><strong>Skills:</strong> Logged from the Skills page and counted when approved.</p>
+                    <p><strong>Hours:</strong> Accumulated from approved shift logs.</p>
+                    <p><strong>Documents:</strong> Upload supporting documentation on the Requirements page.</p>
+                    <p><strong>Evaluations:</strong> Completed by your preceptors during clinical rotations.</p>
+                  </div>
+                }
+              />
             </h2>
             {requirementProgress.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2">
@@ -263,6 +297,91 @@ const Dashboard = () => {
               </p>
             )}
           </div>
+
+          {/* Post-Clinical Documentation Status */}
+          {studentShifts.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-500" /> Post-Clinical Documentation
+                <HelpIcon 
+                  title="Post-Clinical Documentation"
+                  content={
+                    <div className="space-y-2">
+                      <p>Track the documentation status for each of your clinical shifts.</p>
+                      <p><strong>Shift Status:</strong> Whether your shift log is pending, submitted, approved, or rejected.</p>
+                      <p><strong>Skills Logged:</strong> Number of skills you've documented for this shift.</p>
+                      <p>Complete documentation promptly after each clinical rotation for best results!</p>
+                    </div>
+                  }
+                />
+              </h2>
+              <div className="space-y-3">
+                {studentShifts
+                  .sort((a, b) => b.date.localeCompare(a.date))
+                  .slice(0, 5)
+                  .map((shift) => {
+                    const site = state.sites.find((s) => s.id === shift.siteId);
+                    const linkedSkills = studentSkills.filter(sk => sk.shiftLogId === shift.id);
+                    const isDocComplete = shift.status === 'approved';
+                    const isPending = shift.status === 'pending';
+                    const isSubmitted = shift.status === 'submitted';
+                    
+                    return (
+                      <div
+                        key={shift.id}
+                        className={`flex items-center justify-between p-4 rounded-xl border ${
+                          isDocComplete 
+                            ? 'bg-green-50 border-green-200' 
+                            : isPending 
+                              ? 'bg-amber-50 border-amber-200' 
+                              : isSubmitted 
+                                ? 'bg-blue-50 border-blue-200'
+                                : 'bg-red-50 border-red-200'
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">{site?.name ?? 'Unknown Site'}</p>
+                          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                            <span>{new Date(shift.date).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>{shift.computedHours.toFixed(1)} hrs</span>
+                            <span>•</span>
+                            <span>{linkedSkills.length} skills logged</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isDocComplete ? (
+                            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                              <CheckCircle className="w-3.5 h-3.5" /> Complete
+                            </span>
+                          ) : isPending ? (
+                            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                              <AlertTriangle className="w-3.5 h-3.5" /> Needs Submission
+                            </span>
+                          ) : isSubmitted ? (
+                            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                              <Clock className="w-3.5 h-3.5" /> Under Review
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                              <XCircle className="w-3.5 h-3.5" /> Rejected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                {studentShifts.length > 5 && (
+                  <Link 
+                    to="/shift-hours" 
+                    className="block text-center text-sm text-primary-600 hover:text-primary-700 font-medium py-2"
+                  >
+                    View all {studentShifts.length} shifts →
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Upcoming scheduled shifts */}
           {upcomingSchedules.length > 0 && (
