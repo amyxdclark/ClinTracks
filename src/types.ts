@@ -115,6 +115,124 @@ export interface AuditEvent {
   details?: string;
 }
 
+// Document upload support
+export interface UploadedDocument {
+  id: string;
+  studentId: string;
+  templateId?: string; // Links to RequirementTemplate
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  fileData: string; // Base64 encoded
+  notes?: string;
+  uploadedAt: string;
+  status: RequirementStatus;
+}
+
+// Preceptor Evaluation Designer
+export interface EvaluationField {
+  id: string;
+  type: 'text' | 'textarea' | 'rating' | 'select' | 'checkbox' | 'number';
+  label: string;
+  required: boolean;
+  options?: string[]; // For select type
+  minValue?: number; // For rating/number
+  maxValue?: number; // For rating/number
+}
+
+export interface EvaluationTemplate {
+  id: string;
+  programId: string;
+  name: string;
+  description?: string;
+  version: number;
+  fields: EvaluationField[];
+  preceptorIdentification: boolean; // Whether to include preceptor identification field
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  isActive: boolean;
+}
+
+export interface PreceptorEvaluation {
+  id: string;
+  templateId: string;
+  studentId: string;
+  preceptorId: string;
+  shiftLogId?: string;
+  responses: Record<string, string | number | boolean>;
+  submittedAt: string;
+  status: RequirementStatus;
+}
+
+// Quiz Management
+export type QuestionType = 'multiple_choice' | 'multi_select' | 'true_false' | 'fill_blank' | 'matching';
+
+export interface QuizQuestion {
+  id: string;
+  type: QuestionType;
+  text: string;
+  options?: string[];
+  correctAnswer: string | string[]; // Single answer or array for multi_select
+  explanation?: string;
+  weight: number; // Points for this question
+  category?: string;
+}
+
+export interface Quiz {
+  id: string;
+  programId?: string;
+  title: string;
+  description?: string;
+  questions: QuizQuestion[];
+  passingScore: number; // Percentage
+  timeLimit?: number; // Minutes
+  allowRetakes: boolean;
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+}
+
+export interface QuizAttempt {
+  id: string;
+  quizId: string;
+  studentId: string;
+  answers: Record<string, string | string[]>;
+  score: number;
+  passed: boolean;
+  startedAt: string;
+  completedAt?: string;
+}
+
+// Continuing Education
+export interface ContinuingEducationClass {
+  id: string;
+  title: string;
+  description?: string;
+  programId?: string;
+  ceHours: number;
+  instructor: string;
+  date: string;
+  duration: number; // Minutes
+  quizId?: string; // Optional quiz requirement
+  createdBy: string;
+  createdAt: string;
+  isActive: boolean;
+}
+
+export interface CEAttendance {
+  id: string;
+  classId: string;
+  studentId: string;
+  attendedAt: string;
+  quizPassed?: boolean;
+  certificateNumber: string;
+  verificationCode: string;
+}
+
 export interface ScheduleRequest {
   id: string;
   studentId: string;
@@ -143,6 +261,27 @@ export interface AppState {
   scheduleRequests: ScheduleRequest[];
   audit: AuditEvent[];
   hasSeenOnboarding: boolean;
+  // New features
+  uploadedDocuments: UploadedDocument[];
+  evaluationTemplates: EvaluationTemplate[];
+  preceptorEvaluations: PreceptorEvaluation[];
+  quizzes: Quiz[];
+  quizAttempts: QuizAttempt[];
+  ceClasses: ContinuingEducationClass[];
+  ceAttendances: CEAttendance[];
+  // Notifications for approvals/denials
+  notifications: Notification[];
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'shift_approved' | 'shift_rejected' | 'schedule_approved' | 'schedule_rejected' | 'skill_approved' | 'skill_rejected' | 'evaluation_received' | 'quiz_result' | 'ce_certificate';
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  relatedEntityId?: string;
 }
 
 // ─── Programs: Maine colleges & EMS training programs ───
@@ -347,4 +486,13 @@ export const INITIAL_STATE: AppState = {
   scheduleRequests: [],
   audit: [],
   hasSeenOnboarding: false,
+  // New features
+  uploadedDocuments: [],
+  evaluationTemplates: [],
+  preceptorEvaluations: [],
+  quizzes: [],
+  quizAttempts: [],
+  ceClasses: [],
+  ceAttendances: [],
+  notifications: [],
 };

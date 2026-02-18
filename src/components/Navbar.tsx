@@ -12,6 +12,8 @@ import {
   Settings,
   HelpCircle,
   LogOut,
+  FileText,
+  BookOpen,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -33,6 +35,8 @@ const allNavItems: NavItem[] = [
   { path: '/skills', label: 'Skills', icon: Star },
   { path: '/scheduling', label: 'Schedule', icon: Calendar },
   { path: '/approvals', label: 'Approvals', icon: Inbox },
+  { path: '/evaluations', label: 'Evaluations', icon: FileText },
+  { path: '/quizzes', label: 'Quizzes & CE', icon: BookOpen },
   { path: '/admin', label: 'Admin Setup', icon: Settings },
   { path: '/help', label: 'Help', icon: HelpCircle },
 ];
@@ -40,11 +44,11 @@ const allNavItems: NavItem[] = [
 /** Return nav items visible for the given role */
 const getNavForRole = (role: Role): NavItem[] => {
   const visiblePaths: Record<Role, string[]> = {
-    Student: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/scheduling', '/help'],
+    Student: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/scheduling', '/quizzes', '/help'],
     Preceptor: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/approvals', '/help'],
-    Instructor: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/approvals', '/help'],
-    Coordinator: ['/dashboard', '/requirements', '/scheduling', '/approvals', '/admin', '/help'],
-    ProgramAdmin: ['/dashboard', '/requirements', '/approvals', '/admin', '/help'],
+    Instructor: ['/dashboard', '/requirements', '/shift-hours', '/skills', '/approvals', '/quizzes', '/help'],
+    Coordinator: ['/dashboard', '/requirements', '/scheduling', '/approvals', '/evaluations', '/quizzes', '/admin', '/help'],
+    ProgramAdmin: ['/dashboard', '/requirements', '/approvals', '/evaluations', '/quizzes', '/admin', '/help'],
   };
   const paths = visiblePaths[role];
   return allNavItems.filter(item => paths.includes(item.path));
@@ -55,9 +59,9 @@ const getMobileNav = (role: Role): NavItem[] => {
   const mobileOrder: Record<Role, string[]> = {
     Student: ['/dashboard', '/shift-hours', '/skills', '/scheduling', '/requirements'],
     Preceptor: ['/dashboard', '/shift-hours', '/skills', '/approvals', '/requirements'],
-    Instructor: ['/dashboard', '/shift-hours', '/skills', '/approvals', '/requirements'],
-    Coordinator: ['/dashboard', '/scheduling', '/approvals', '/admin', '/requirements'],
-    ProgramAdmin: ['/dashboard', '/approvals', '/admin', '/requirements', '/help'],
+    Instructor: ['/dashboard', '/shift-hours', '/skills', '/approvals', '/quizzes'],
+    Coordinator: ['/dashboard', '/scheduling', '/approvals', '/evaluations', '/admin'],
+    ProgramAdmin: ['/dashboard', '/approvals', '/evaluations', '/admin', '/quizzes'],
   };
   const paths = mobileOrder[role];
   return allNavItems.filter(item => paths.includes(item.path));

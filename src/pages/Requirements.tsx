@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '../AppContext';
-import type { RequirementTemplate } from '../types';
-import { ClipboardCheck, BookOpen, FileText, Award, CheckCircle, AlertTriangle, Plus, Target } from 'lucide-react';
+import type { RequirementTemplate, UploadedDocument } from '../types';
+import { ClipboardCheck, BookOpen, FileText, Award, CheckCircle, AlertTriangle, Plus, Target, Upload, File, X, Download } from 'lucide-react';
+import HelpIcon from '../components/HelpIcon';
 
 const CATEGORIES = ['Skills', 'Hours', 'Documents', 'Evaluations'] as const;
 type Category = (typeof CATEGORIES)[number];
@@ -19,6 +20,8 @@ const Requirements = () => {
   const [evidenceModal, setEvidenceModal] = useState<RequirementTemplate | null>(null);
   const [evidenceNotes, setEvidenceNotes] = useState('');
   const [noPHI, setNoPHI] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; type: string; size: number; data: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentUser = state.profiles.find(u => u.id === state.activeProfileId);
   const isStudent = currentUser?.role === 'Student';
@@ -59,10 +62,62 @@ const Requirements = () => {
 
   const programName = (pid: string) => state.programs.find(p => p.id === pid)?.name ?? pid;
 
+  // Get uploaded documents for a template
+  const getDocsForTemplate = (templateId: string) => 
+    state.uploadedDocuments?.filter(d => d.templateId === templateId && d.studentId === state.activeProfileId) || [];
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedFile({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: reader.result as string,
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ''; // Reset input
+  };
+
   const handleAddEvidence = () => {
     if (!evidenceModal || !noPHI) return;
     const tid = evidenceModal.id;
     const uid = state.activeProfileId;
+    const now = new Date().toISOString();
+
+    // If there's an uploaded file, save it
+    if (uploadedFile) {
+      const newDoc: UploadedDocument = {
+        id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        studentId: uid,
+        templateId: tid,
+        fileName: uploadedFile.name,
+        fileType: uploadedFile.type,
+        fileSize: uploadedFile.size,
+        fileData: uploadedFile.data,
+        notes: evidenceNotes || undefined,
+        uploadedAt: now,
+        status: 'pending',
+      };
+
+      updateState(prev => ({
+        ...prev,
+        uploadedDocuments: [...(prev.uploadedDocuments || []), newDoc],
+      }));
+      addAuditEvent('upload_document', 'uploadedDocument', newDoc.id, `File: ${uploadedFile.name}`);
+    }
+
+    // Update progress
     updateState(prev => {
       const existing = prev.studentProgress.find(p => p.studentId === uid && p.templateId === tid);
       if (existing) {
@@ -91,6 +146,16 @@ const Requirements = () => {
     setEvidenceModal(null);
     setEvidenceNotes('');
     setNoPHI(false);
+    setUploadedFile(null);
+  };
+
+  const handleDownloadDocument = (doc: UploadedDocument) => {
+    const link = document.createElement('a');
+    link.href = doc.fileData;
+    link.download = doc.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const progressBar = (current: number, target: number) => {
@@ -243,13 +308,42 @@ const Requirements = () => {
 
                 {/* Add Evidence button for Documents / Evaluations (student only) */}
                 {isStudent && (template.category === 'Documents' || template.category === 'Evaluations') && current < template.targetCount && (
-                  <div className="mt-3">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => setEvidenceModal(template)}
                       className="flex items-center gap-1.5 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
                     >
                       <Plus className="w-4 h-4" /> Add Evidence
                     </button>
+                  </div>
+                )}
+
+                {/* Show uploaded documents */}
+                {isStudent && template.category === 'Documents' && getDocsForTemplate(template.id).length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-medium text-gray-500 uppercase">Uploaded Documents</p>
+                    {getDocsForTemplate(template.id).map(doc => (
+                      <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <File className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-sm text-gray-700 truncate">{doc.fileName}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            doc.status === 'approved' ? 'bg-green-100 text-green-700' :
+                            doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-600'
+                          }`}>
+                            {doc.status}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleDownloadDocument(doc)}
+                          className="p-1 text-gray-400 hover:text-primary-600"
+                          title="Download"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -261,8 +355,8 @@ const Requirements = () => {
       {/* Add Evidence Modal */}
       {evidenceModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-            <div className="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-6 rounded-t-xl">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-6 rounded-t-xl sticky top-0 z-10">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <Plus className="w-5 h-5" /> Add Evidence
               </h2>
@@ -274,6 +368,60 @@ const Requirements = () => {
                 Confirm that you are documenting evidence for <strong>{evidenceModal.name}</strong>.
                 This will increment your progress by 1.
               </p>
+
+              {/* File Upload Section */}
+              {evidenceModal.category === 'Documents' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Supporting Document
+                    <HelpIcon
+                      title="Document Upload"
+                      content={
+                        <div className="space-y-2">
+                          <p>Upload supporting documentation such as certifications, licenses, or proof of completion.</p>
+                          <p><strong>Accepted formats:</strong> PDF, images (JPG, PNG), Word documents</p>
+                          <p><strong>Max size:</strong> 5MB</p>
+                        </div>
+                      }
+                      className="ml-1"
+                    />
+                  </label>
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  
+                  {uploadedFile ? (
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <File className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-green-800 truncate">{uploadedFile.name}</p>
+                          <p className="text-xs text-green-600">{(uploadedFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setUploadedFile(null)}
+                        className="p-1 text-green-600 hover:text-red-600 transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-400 hover:bg-primary-50 transition-colors"
+                    >
+                      <Upload className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm text-gray-600">Click to upload a file (max 5MB)</span>
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes (NO PHI!)</label>
@@ -302,7 +450,7 @@ const Requirements = () => {
 
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => { setEvidenceModal(null); setEvidenceNotes(''); setNoPHI(false); }}
+                  onClick={() => { setEvidenceModal(null); setEvidenceNotes(''); setNoPHI(false); setUploadedFile(null); }}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-800 font-medium py-3 px-4 rounded-xl transition-colors"
                 >
                   Cancel
