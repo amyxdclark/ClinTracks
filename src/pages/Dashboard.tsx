@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useApp } from '../AppContext';
 import type { RequirementTemplate, ShiftLog } from '../types';
+import OverallProgressBar from '../components/OverallProgressBar';
+import HelpIcon from '../components/HelpIcon';
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -190,6 +192,13 @@ const Dashboard = () => {
       {/* ─── STUDENT DASHBOARD ─── */}
       {isStudent && (
         <>
+          {/* Overall Progress Bar */}
+          <OverallProgressBar 
+            completed={completedCount} 
+            total={programTemplates.length}
+            label="Clinical Requirements Progress"
+          />
+
           {/* Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
@@ -221,6 +230,16 @@ const Dashboard = () => {
           {/* Quick actions */}
           <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
             <Plus className="w-5 h-5 text-blue-500" /> Quick Actions
+            <HelpIcon 
+              title="Quick Actions"
+              content={
+                <div className="space-y-2">
+                  <p><strong>Log Shift:</strong> Record your clinical hours at a site. Include start/end times and break duration.</p>
+                  <p><strong>Log Skill:</strong> Document a clinical skill you performed. Link it to a shift for better tracking.</p>
+                  <p><strong>View Requirements:</strong> See all program requirements and your progress toward completion.</p>
+                </div>
+              }
+            />
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <QuickAction
@@ -250,6 +269,18 @@ const Dashboard = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-500" /> Requirement Progress
+              <HelpIcon 
+                title="Requirement Progress"
+                content={
+                  <div className="space-y-2">
+                    <p>This section shows your progress toward completing all program requirements.</p>
+                    <p><strong>Skills:</strong> Logged from the Skills page and counted when approved.</p>
+                    <p><strong>Hours:</strong> Accumulated from approved shift logs.</p>
+                    <p><strong>Documents:</strong> Upload supporting documentation on the Requirements page.</p>
+                    <p><strong>Evaluations:</strong> Completed by your preceptors during clinical rotations.</p>
+                  </div>
+                }
+              />
             </h2>
             {requirementProgress.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2">
