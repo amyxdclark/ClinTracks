@@ -12,6 +12,8 @@ import AdminSetup from './pages/AdminSetup';
 import Settings from './pages/Settings';
 import Onboarding from './pages/Onboarding';
 import Help from './pages/Help';
+import EvaluationDesigner from './pages/EvaluationDesigner';
+import QuizManagement from './pages/QuizManagement';
 
 const AppRoutes = () => {
   const { state } = useApp();
@@ -35,6 +37,8 @@ const AppRoutes = () => {
         <Route path="scheduling" element={<Scheduling />} />
         <Route path="approvals" element={<Approvals />} />
         <Route path="admin" element={<AdminSetup />} />
+        <Route path="evaluations" element={<EvaluationDesigner />} />
+        <Route path="quizzes" element={<QuizManagement />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
         <Route path="help" element={<Help />} />
@@ -54,4 +58,3 @@ function App() {
 }
 
 export default App;
-
