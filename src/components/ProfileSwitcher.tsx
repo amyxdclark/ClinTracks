@@ -33,7 +33,7 @@ const ProfileSwitcher = ({ onClose }: ProfileSwitcherProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
         <div className="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-6">
           <h2 className="text-2xl font-bold mb-2">Switch Profile</h2>
